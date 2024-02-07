@@ -12,10 +12,6 @@ export class Paddle {
             y: positionXY.y
         }
 
-
-        this.minX = 0;
-        this.maxX = screenWidth;
-
         this.size = {
             x: sizeXY.x,
             y: sizeXY.y
@@ -25,6 +21,8 @@ export class Paddle {
             y: this.startPos.y,
         }
         this.speed = speed;
+        this.minX = 0;
+        this.maxX = screenWidth - this.size.x;
     }
     //forces paddle X position in screen bounds,
     //called in onTouchHeldEvent
@@ -35,6 +33,7 @@ export class Paddle {
         if (this.pos.x > this.maxX) {
             this.pos.x = this.maxX;
         }
+
     };
 
     onTouchHeldEvent(touchPosX) {

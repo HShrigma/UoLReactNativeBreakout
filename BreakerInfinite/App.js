@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Button, SafeAreaView, StyleSheet, Text, View, TouchableWithoutFeedback } from 'react-native';
+
 import { useWindowDimensions } from 'react-native';
 import { Paddle } from './Paddle';
 import { useState } from 'react';
@@ -13,7 +14,7 @@ const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
 const paddleSizeYCoeff = .04;
 
-function CreateStyles(width, height, paddleStats) {
+function CreateStyles(width, height, paddle) {
   return StyleSheet.create({
     Background: {
       width: width,
@@ -23,12 +24,20 @@ function CreateStyles(width, height, paddleStats) {
       justifyContent: 'center',
     },
     paddle: {
-      width: paddleStats.sizeXY.x,
-      height: paddleStats.sizeXY.y,
+      width: paddle.size.x,
+      height: paddle.size.y,
       backgroundColor: "#fff",
       position: 'absolute',
-      bottom: paddleStats.positionXY.y,
-      left: paddleStats.positionXY.x
+      bottom: paddle.pos.y,
+      left: paddle.pos.x
+    },
+    paddleInput:{
+      width: paddle.size.x,
+      height: paddle.size.y,
+      backgroundColor: "#fff",
+      position: 'absolute',
+      bottom: paddle.pos.y,
+      left: paddle.pos.x
     },
     ball: {
       width: width / 10,
@@ -46,8 +55,8 @@ function CreateStyles(width, height, paddleStats) {
 export default function App() {
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const { width, height } = useWindowDimensions();
-  const { paddleX, setPaddleX } = useState(width / 2);
-
+  const [paddleX, setPaddleX] = useState(width / 2);
+  const { gameOver, setGameOver } = useState(false);
   const paddleStats = {
     positionXY: {
       x: paddleX,
@@ -57,18 +66,26 @@ export default function App() {
       x: width * paddleSizeXCoeff,
       y: height * paddleSizeYCoeff,
     },
-    speed: 49
+    speed: 5
   }
-  paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
-  const styles = CreateStyles(width, height, paddleStats);
   //generate paddle
-  // paddle = new Paddle();
+  paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
+
+  const styles = CreateStyles(width, height, paddle);
+  function onMovePaddle(){
+    //console.log("Paddle moved!");
+    paddle.onTouchHeldEvent(0);
+    setPaddleX(paddle.pos.x);
+  }  
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <View style={styles.paddle}>
+        <TouchableWithoutFeedback onPressIn={onMovePaddle} style={styles.paddleInput}>
+          <View style={styles.paddle}>
 
-        </View>
+          </View>
+        </TouchableWithoutFeedback>
+
         {/* <View style={styles.ball}>
 
       </View> */}
