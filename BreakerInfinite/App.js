@@ -1,5 +1,15 @@
+//refrences: 
+// ReactNative documentation: https://reactnative.dev/
 import { StatusBar } from 'expo-status-bar';
-import { Button, SafeAreaView, StyleSheet, Text, View, TouchableWithoutFeedback } from 'react-native';
+import {
+  Button,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  Animated,
+  PanResponder
+} from 'react-native';
 
 import { useWindowDimensions } from 'react-native';
 import { Paddle } from './Paddle';
@@ -31,10 +41,10 @@ function CreateStyles(width, height, paddle) {
       bottom: paddle.pos.y,
       left: paddle.pos.x
     },
-    paddleInput:{
-      width: paddle.size.x,
-      height: paddle.size.y,
-      backgroundColor: "#fff",
+    paddleInput: {
+      width: paddle.size.x + 5,
+      height: paddle.size.y + 5,
+      backgroundColor: "red",
       position: 'absolute',
       bottom: paddle.pos.y,
       left: paddle.pos.x
@@ -55,7 +65,9 @@ function CreateStyles(width, height, paddle) {
 export default function App() {
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const { width, height } = useWindowDimensions();
-  const [paddleX, setPaddleX] = useState(width / 2);
+  const [paddleX, setPaddleX] = useState(width / 2 - (width * paddleSizeXCoeff) / 2);
+  var touchingPaddle = false;
+  var firstTouch = false;
   const { gameOver, setGameOver } = useState(false);
   const paddleStats = {
     positionXY: {
@@ -72,23 +84,38 @@ export default function App() {
   paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
 
   const styles = CreateStyles(width, height, paddle);
-  function onMovePaddle(){
-    //console.log("Paddle moved!");
-    paddle.onTouchHeldEvent(0);
-    setPaddleX(paddle.pos.x);
-  }  
+  function wait1Frame(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  // async function onMovePaddle() {
+  //   if(!firstTouch && !touchingPaddle){
+  //     console.log("hui");
+  //     firstTouch = true;
+  //     touchingPaddle = true;
+  //   }
+
+  //   if(touchingPaddle){
+  //     console.log('moving');
+  //     paddle.onTouchHeldEvent(0);
+  //     setPaddleX(paddle.pos.x);
+  //     await wait1Frame(DELTA);
+  //     if(touchingPaddle){
+  //       onMovePaddle();
+
+  //     }
+  //   }
+
+  // };
+  // function onStopMovePaddle() {
+  //   touchingPaddle = false;
+  //   console.log('not moving');
+  // };
+
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <TouchableWithoutFeedback onPressIn={onMovePaddle} style={styles.paddleInput}>
-          <View style={styles.paddle}>
-
-          </View>
-        </TouchableWithoutFeedback>
-
-        {/* <View style={styles.ball}>
-
-      </View> */}
+        <View style={styles.paddle}>
+        </View>
       </View>
     </SafeAreaView>
 
