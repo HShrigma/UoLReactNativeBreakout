@@ -4,7 +4,7 @@ export class Paddle {
     size;
     minX;
     maxX;
-    currentPos;
+    pos;
     //determines absolute size and position on first frame
     constructor(sizeXY, positionXY, speed, screenWidth) {
         this.startPos = {
@@ -20,7 +20,7 @@ export class Paddle {
             x: sizeXY.x,
             y: sizeXY.y
         }
-        this.currentPos = {
+        this.pos = {
             x: this.startPos.x,
             y: this.startPos.y,
         }
@@ -29,22 +29,22 @@ export class Paddle {
     //forces paddle X position in screen bounds,
     //called in onTouchHeldEvent
     keepInBounds() {
-        if (this.currentPos.x < this.minX) {
-            this.currentPos.x = this.minX;
+        if (this.pos.x < this.minX) {
+            this.pos.x = this.minX;
         }
-        if (this.currentPos.x > this.maxX) {
-            this.currentPos.x = this.maxX;
+        if (this.pos.x > this.maxX) {
+            this.pos.x = this.maxX;
         }
     };
 
     onTouchHeldEvent(touchPosX) {
 
-        if (touchPosX < this.currentPos.x) {
-            this.currentPos.x -= this.speed;
+        if (touchPosX < this.pos.x) {
+            this.pos.x -= this.speed;
         }
 
-        if (touchPosX > this.currentPos.x) {
-            this.currentPos.x += this.speed;
+        if (touchPosX > this.pos.x) {
+            this.pos.x += this.speed;
         }
         this.keepInBounds();
     }
