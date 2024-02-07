@@ -40,15 +40,14 @@ function CreateStyles(width, height, paddle, pan) {
       position: 'absolute',
       top: paddle.pos.y,
       left: paddle.pos.x,
-      //transform: [{ translateX: pan.x }]
     },
-    paddleInput: {
-      width: paddle.size.x + 5,
-      height: paddle.size.y + 5,
-      backgroundColor: "red",
+    paddleInputArea: {
+      width: width,
+      height: paddle.size.y * 10,
+      // backgroundColor: "#FFA500",
       position: 'absolute',
-      bottom: paddle.pos.y,
-      left: paddle.pos.x
+      top: paddle.pos.y - 200,
+      left: 0
     },
     ball: {
       width: width / 10,
@@ -83,7 +82,7 @@ export default function App() {
       x: width * paddleSizeXCoeff,
       y: height * paddleSizeYCoeff,
     },
-    speed: 6.5
+    speed: 10
   }
   //generate paddle
   paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
@@ -103,8 +102,9 @@ export default function App() {
       listener: (event, gestureState) => {
 
         let touches = event.nativeEvent.touches;
-
-        paddle.onTouchHeldEvent(touches[0].locationX);
+        //abs position = touches[0].locationX
+        //rel position(0 starts at width/2) = pan.x._value
+        paddle.onTouchHeldEvent(pan.x._value);
         setPaddleX(paddle.pos.x);
       }
     }),
@@ -116,8 +116,11 @@ export default function App() {
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <Animated.View style={styles.paddle}{...panResponder.panHandlers}>
+        <View style={styles.paddle}>
+        </View>
+        <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
+
       </View>
     </SafeAreaView>
 

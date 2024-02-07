@@ -37,12 +37,18 @@ export class Paddle {
     };
 
     onTouchHeldEvent(touchPosX) {
-        console.log('posX before: ' + this.pos.x);
-        if (this.pos.x < touchPosX)
+        //relative touchPos
+        if(touchPosX < 0 ){
+            this.pos.x -= this.speed;
+        }
+        if(touchPosX > 0){
             this.pos.x += this.speed;
-        if (this.pos.x > touchPosX)
-        this.pos.x -= this.speed;
-    
+        }
+        //abs touchpos
+        // if (this.pos.x < touchPosX)
+        //     this.pos.x += this.speed;
+        // if (this.pos.x > touchPosX)
+        //     this.pos.x -= this.speed;
         this.keepInBounds();
         console.log('posX after: ' + this.pos.x);
     }
