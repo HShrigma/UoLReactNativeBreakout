@@ -33,18 +33,17 @@ export class Paddle {
         if (this.pos.x > this.maxX) {
             this.pos.x = this.maxX;
         }
-
+        console.log("keep In bounds played!");
     };
 
     onTouchHeldEvent(touchPosX) {
-
-        if (touchPosX < this.pos.x) {
-            this.pos.x -= this.speed;
-        }
-
-        if (touchPosX > this.pos.x) {
+        console.log('posX before: ' + this.pos.x);
+        if (this.pos.x < touchPosX)
             this.pos.x += this.speed;
-        }
+        if (this.pos.x > touchPosX)
+        this.pos.x -= this.speed;
+    
         this.keepInBounds();
+        console.log('posX after: ' + this.pos.x);
     }
 }

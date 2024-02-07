@@ -13,7 +13,7 @@ import {
 
 import { useWindowDimensions } from 'react-native';
 import { Paddle } from './Paddle';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 //import {Ball} from './Ball';
 const title = "Breaker: Infinite";
 
@@ -24,7 +24,7 @@ const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
 const paddleSizeYCoeff = .04;
 
-function CreateStyles(width, height, paddle) {
+function CreateStyles(width, height, paddle, pan) {
   return StyleSheet.create({
     Background: {
       width: width,
@@ -38,8 +38,9 @@ function CreateStyles(width, height, paddle) {
       height: paddle.size.y,
       backgroundColor: "#fff",
       position: 'absolute',
-      bottom: paddle.pos.y,
-      left: paddle.pos.x
+      top: paddle.pos.y,
+      left: paddle.pos.x,
+      //transform: [{ translateX: pan.x }]
     },
     paddleInput: {
       width: paddle.size.x + 5,
@@ -63,59 +64,60 @@ function CreateStyles(width, height, paddle) {
 }
 
 export default function App() {
-  //loading stylesheets in so they can make use of width/height dynamic dimensions
+
+
+  //screen dimensions
   const { width, height } = useWindowDimensions();
+
+  //PaddleX data as it will vary by moving it
   const [paddleX, setPaddleX] = useState(width / 2 - (width * paddleSizeXCoeff) / 2);
-  var touchingPaddle = false;
-  var firstTouch = false;
-  const { gameOver, setGameOver } = useState(false);
+
+  //  const { gameOver, setGameOver } = useState(false);
+  //starter stats for paddle
   const paddleStats = {
     positionXY: {
       x: paddleX,
-      y: 0,
+      y: height - (height * paddleSizeYCoeff),
     },
     sizeXY: {
       x: width * paddleSizeXCoeff,
       y: height * paddleSizeYCoeff,
     },
-    speed: 5
+    speed: 6.5
   }
   //generate paddle
   paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
 
-  const styles = CreateStyles(width, height, paddle);
-  function wait1Frame(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  // async function onMovePaddle() {
-  //   if(!firstTouch && !touchingPaddle){
-  //     console.log("hui");
-  //     firstTouch = true;
-  //     touchingPaddle = true;
-  //   }
+  //pan and panResponder for paddle movement
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      pan.setOffset({ x: pan.x._value, y: pan.y._value });
+    },
+    onPanResponderMove: Animated.event([
+      null,
+      { dx: pan.x, dy: pan.y },
+    ], {
+      useNativeDriver: false,
+      listener: (event, gestureState) => {
 
-  //   if(touchingPaddle){
-  //     console.log('moving');
-  //     paddle.onTouchHeldEvent(0);
-  //     setPaddleX(paddle.pos.x);
-  //     await wait1Frame(DELTA);
-  //     if(touchingPaddle){
-  //       onMovePaddle();
+        let touches = event.nativeEvent.touches;
 
-  //     }
-  //   }
+        paddle.onTouchHeldEvent(touches[0].locationX);
+        setPaddleX(paddle.pos.x);
+      }
+    }),
+    onPanResponderRelease: () => { }
+  })).current;
 
-  // };
-  // function onStopMovePaddle() {
-  //   touchingPaddle = false;
-  //   console.log('not moving');
-  // };
-
+  //loading stylesheets in so they can make use of width/height dynamic dimensions
+  const styles = CreateStyles(width, height, paddle, pan);
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <View style={styles.paddle}>
-        </View>
+        <Animated.View style={styles.paddle}{...panResponder.panHandlers}>
+        </Animated.View>
       </View>
     </SafeAreaView>
 
