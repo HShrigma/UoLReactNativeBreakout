@@ -20,7 +20,14 @@ const title = "Breaker: Infinite";
 const FPS = 60;
 const DELTA = 1000 / FPS;
 
-
+//all game states
+const GFSM = {
+  StartMenu: 0,
+  GameStart: 1,
+  Playing: 2,
+  GameOver: 3,
+}
+var gameState = GFSM.GameStart; 
 //What amount of the width of the screen is the paddle size, must be in range 0-1
 const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
@@ -75,13 +82,13 @@ export default function App() {
   //#region States
   //PaddleX data as it will vary by moving it
   const [paddleX, setPaddleX] = useState(width / 2 - ((width * paddleSizeXCoeff) / 2));
+  //Ball Position values in XY
   const [ballPos, setBallPos] = useState({
     x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
     y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
   });
   //#endregion
 
-  //  const { gameOver, setGameOver } = useState(false);
   //#region Starters
   //starter stats for paddle
   const paddleStats = {
@@ -116,13 +123,19 @@ export default function App() {
 
   //#region Ball Physics Functions
   function startBallSim() {
+    gameState = GFSM.Playing;
     ball.StartSim();
   }
   //#endregion
   //#region Pan and panResponder for paddle movement
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => {
+      if (gameState == GFSM.GameStart || gameState == GFSM.Playing) {
+        console.log(gameState);
+        return true;
+      }
+    },
     onPanResponderGrant: () => {
       pan.setOffset({ x: pan.x._value, y: pan.y._value });
       //on paddle move, game should start
