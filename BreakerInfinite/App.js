@@ -110,16 +110,16 @@ export default function App() {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
     },
-    speed: 2,
+    speed: 5,
     collidersArr: []
   }
   //#endregion
 
   //generate paddle
-  paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
+  var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
 
   //generate ball
-  ballStats.collidersArr.push(paddle);
+  ballStats.collidersArr.push({tag:"paddle", obj: paddle});
 
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed);
 
@@ -128,37 +128,37 @@ export default function App() {
     gameState = GFSM.Playing;
     ball.SetRandomUpDir();
 
-    RunSim();
+    moveBallPos();
   }
   //delay for ms 
   // const delay = ms => new Promise(res => setTimeout(res, ms));
   function RunSim() {
-    moveBallPos();
   }
-  //#endregion
-  //#region Pan and panResponder for paddle movement
-  const pan = useRef(new Animated.ValueXY()).current;
   const ballAnimX = useRef(new Animated.Value(ball.pos.x)).current;
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
   const moveBallPos = () => {
     if (gameState == GFSM.Playing) {
       Animated.parallel([
-        Animated.spring(ballAnimX, {
+        Animated.timing(ballAnimX, {
           toValue: ball.GetNextPos().x,
           duration: DELTA,
           useNativeDriver: false
         }),
-        Animated.spring(ballAnimY, {
+        Animated.timing(ballAnimY, {
           toValue: ball.GetNextPos().y,
           duration: DELTA,
           useNativeDriver: false
         })
-      ]).start(() => { console.log(counter); counter++; moveBallPos() });
+      ]).start(() => { ball.UpdateCollidersForObject({tag:"paddle",obj: paddle}); moveBallPos(); });
 
     }
 
   }
+  //#endregion
+  //#region Pan and panResponder for paddle movement
+  const pan = useRef(new Animated.ValueXY()).current;
+
 
 
   const panResponder = useRef(PanResponder.create({
