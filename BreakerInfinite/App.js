@@ -1,5 +1,6 @@
 //refrences: 
 // ReactNative documentation: https://reactnative.dev/
+// For delay function: Etienne, Martin, Nov 24 2017, Stack Overflow, https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
 import { StatusBar } from 'expo-status-bar';
 import {
   Button,
@@ -20,7 +21,7 @@ const title = "Breaker: Infinite";
 const FPS = 60;
 const DELTA = 1000 / FPS;
 
-//all game states
+//Pseudo-enum with all game states
 const GFSM = {
   StartMenu: 0,
   GameStart: 1,
@@ -119,27 +120,44 @@ export default function App() {
   //generate ball
   ballStats.collidersArr.push(paddle);
 
-  ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed);
+  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed);
 
-  //#region Ball Physics Functions
+  //#region Physics Functions
   function startBallSim() {
     gameState = GFSM.Playing;
-    ball.StartSim();
+    ball.SetRandomUpDir();
+    // ball.direction.y = -1;
+    // ball.direction.x = 1;
+    RunSim();
+  }
+  //delay for ms 
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+  async function RunSim() {
+    if(gameState == GFSM.Playing){
+      await delay(DELTA);
+      // console.log("ball before move: x: " + ball.pos.x + " y: " + ball.pos.y);
+      ball.Move();
+      // console.log("ball after move: x: " + ball.pos.x + " y: " + ball.pos.y);
+      setBallPos(ball.pos);
+      RunSim();
+    }
   }
   //#endregion
   //#region Pan and panResponder for paddle movement
   const pan = useRef(new Animated.ValueXY()).current;
+  const ballAnim = useRef( new Animated.ValueXY()).current;
   const panResponder = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: () => {
       if (gameState == GFSM.GameStart || gameState == GFSM.Playing) {
-        console.log(gameState);
         return true;
       }
     },
     onPanResponderGrant: () => {
       pan.setOffset({ x: pan.x._value, y: pan.y._value });
-      //on paddle move, game should start
-      startBallSim();
+      //on paddle move, game should start only if this is the gamestart state
+      if(gameState == GFSM.GameStart){
+        startBallSim();
+      }
     },
     onPanResponderMove: Animated.event([
       null,
@@ -164,7 +182,7 @@ export default function App() {
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <View style={styles.ball}></View>
+        <Animated.View style={styles.ball}></Animated.View>
         <View style={styles.paddle}>
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
