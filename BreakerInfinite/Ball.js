@@ -50,4 +50,9 @@ export class Ball{
         this.CheckBorders(this.screenbounds);
     }
 
+    StartSim(){
+        this.direction.x = 0;
+        this.direction.y = -1;
+        console.log("Sim Started");
+    }
 }

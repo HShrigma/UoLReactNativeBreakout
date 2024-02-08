@@ -26,7 +26,7 @@ const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
 const paddleSizeYCoeff = .04;
 //Only 1 coeff for ball as it will be a circle
-const ballSizeCoeff = .01;
+const ballSizeCoeff = .05;
 //#region Stylesheet
 function CreateStyles(width, height, paddle, pan, ball) {
   return StyleSheet.create({
@@ -54,10 +54,13 @@ function CreateStyles(width, height, paddle, pan, ball) {
       left: 0
     },
     ball: {
-      width: width / 10,
-      height: height / 25,
-      backgroundColor: "#fff",
-      position: 'absolute'
+      width: ball.size.x,
+      height: ball.size.y,
+      backgroundColor: "#FF0000",
+      position: 'absolute',
+      top: ball.pos.y,
+      left: ball.pos.x,
+      borderRadius: 50
     },
     brick:
     {
@@ -73,8 +76,8 @@ export default function App() {
   //PaddleX data as it will vary by moving it
   const [paddleX, setPaddleX] = useState(width / 2 - ((width * paddleSizeXCoeff) / 2));
   const [ballPos, setBallPos] = useState({
-    x: width / 2 - ((width * paddleSizeXCoeff) / 2),
-    y: height
+    x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
+    y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
   });
   //#endregion
 
@@ -96,7 +99,7 @@ export default function App() {
     positionXY: ballPos,
     sizeXY: {
       x: width * ballSizeCoeff,
-      y: height * ballSizeCoeff,
+      y: width * ballSizeCoeff,
     },
     speed: 2,
     collidersArr: []
@@ -109,8 +112,13 @@ export default function App() {
   //generate ball
   ballStats.collidersArr.push(paddle);
 
-  ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, {w:width,h:height},ballStats.speed);
+  ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed);
 
+  //#region Ball Physics Functions
+  function startBallSim() {
+    ball.StartSim();
+  }
+  //#endregion
   //#region Pan and panResponder for paddle movement
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(PanResponder.create({
@@ -118,7 +126,7 @@ export default function App() {
     onPanResponderGrant: () => {
       pan.setOffset({ x: pan.x._value, y: pan.y._value });
       //on paddle move, game should start
-      console.log("Permission Granted");
+      startBallSim();
     },
     onPanResponderMove: Animated.event([
       null,
@@ -139,10 +147,11 @@ export default function App() {
   //#endregion
 
   //loading stylesheets in so they can make use of width/height dynamic dimensions
-  const styles = CreateStyles(width, height, paddle, pan, ballStats);
+  const styles = CreateStyles(width, height, paddle, pan, ball);
   return (
     <SafeAreaView>
       <View style={styles.Background}>
+        <View style={styles.ball}></View>
         <View style={styles.paddle}>
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
