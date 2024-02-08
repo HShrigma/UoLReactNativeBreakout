@@ -1,5 +1,4 @@
 export class Paddle {
-    startPos;
     speed;
     size;
     minX;
@@ -7,18 +6,13 @@ export class Paddle {
     pos;
     //determines absolute size and position on first frame
     constructor(sizeXY, positionXY, speed, screenWidth) {
-        this.startPos = {
-            x: positionXY.x,
-            y: positionXY.y
-        }
-
         this.size = {
             x: sizeXY.x,
             y: sizeXY.y
         }
         this.pos = {
-            x: this.startPos.x,
-            y: this.startPos.y,
+            x: positionXY.x,
+            y: positionXY.y
         }
         this.speed = speed;
         this.minX = 0;
