@@ -12,10 +12,10 @@ export class Ball {
         this.colliders = this.BuildRectColliderShapes(collidersArr);
 
         this.screenbounds = {
-            minX: 0,
-            maxX: screenWH.w,
-            minY: 0,
-            maxY: screenWH.h
+            top: 0,
+            bottom: screenWH.h,
+            left: 0,
+            right: screenWH.w - this.size.x
         }
 
         this.direction = {
@@ -27,22 +27,22 @@ export class Ball {
     }
 
     BuildRectColliderShapes(initColls) {
-        var shapes = [];
+        var colls = [];
 
         initColls.forEach(shape => {
             //logic to get top,bottom,left,right edge of shapes
             collider = {
                 top: shape.pos.y,
-                bottom: shape.pos.y + shape.size.y,
+                bottom: shape.pos.y - shape.size.y,
                 left: shape.pos.x,
-                right: shape.pos.x + shape.size.x
+                right: shape.pos.x - shape.size.x
             }
-            shapes.push(collider);
+            colls.push(collider);
         });
 
-        return shapes;
+        return colls;
     }
-    CheckBorders(shape) {
+    CheckBorders(coll) {
 
     }
     SimulatePhysics() {
@@ -59,18 +59,32 @@ export class Ball {
             x: dirX,
             y: -1
         }
-        // console.log("dir prep finished!");
-        // console.log("dirx: " + this.direction.x);
-        // console.log("diry:" + this.direction.y);
     }
-
+    GetNextPos(){
+        this.Move();
+        return this.pos;
+    }
     Move() {
-        if(this.direction == {x:0,y:0}){
-            this.SetRandomUpDir();
-        }
-        // console.log("Move dirx: " + this.direction.x);
-        // console.log("Move diry:" + this.direction.y);
+        this.SimulatePhysics();
         this.pos.x += this.speed * this.direction.x;
         this.pos.y += this.speed * this.direction.y;
+        //logic for going out of screen
+        if (this.pos.x <= this.screenbounds.left) {
+            this.pos.x = this.screenbounds.left;
+            this.direction.x*=-1;
+        }
+        if (this.pos.x >= this.screenbounds.right) {
+            this.pos.x = this.screenbounds.right;
+            this.direction.x*=-1;
+        }
+
+        if (this.pos.y <= this.screenbounds.top) {
+            this.pos.y = this.screenbounds.top;
+            this.direction.y*=-1;
+        }
+        if (this.pos.y >= this.screenbounds.bottom) {
+            this.pos.y = this.screenbounds.bottom;
+            this.direction.y*=-1;
+        }
     }
 }

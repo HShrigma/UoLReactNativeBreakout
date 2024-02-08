@@ -28,7 +28,7 @@ const GFSM = {
   Playing: 2,
   GameOver: 3,
 }
-var gameState = GFSM.GameStart; 
+var gameState = GFSM.GameStart;
 //What amount of the width of the screen is the paddle size, must be in range 0-1
 const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
@@ -77,6 +77,7 @@ function CreateStyles(width, height, paddle, pan, ball) {
   });
 }
 //#endregion
+let counter = 0;
 export default function App() {
   //screen dimensions
   const { width, height } = useWindowDimensions();
@@ -126,26 +127,40 @@ export default function App() {
   function startBallSim() {
     gameState = GFSM.Playing;
     ball.SetRandomUpDir();
-    // ball.direction.y = -1;
-    // ball.direction.x = 1;
+
     RunSim();
   }
   //delay for ms 
-  const delay = ms => new Promise(res => setTimeout(res, ms));
-  async function RunSim() {
-    if(gameState == GFSM.Playing){
-      await delay(DELTA);
-      // console.log("ball before move: x: " + ball.pos.x + " y: " + ball.pos.y);
-      ball.Move();
-      // console.log("ball after move: x: " + ball.pos.x + " y: " + ball.pos.y);
-      setBallPos(ball.pos);
-      RunSim();
-    }
+  // const delay = ms => new Promise(res => setTimeout(res, ms));
+  function RunSim() {
+    moveBallPos();
   }
   //#endregion
   //#region Pan and panResponder for paddle movement
   const pan = useRef(new Animated.ValueXY()).current;
-  const ballAnim = useRef( new Animated.ValueXY()).current;
+  const ballAnimX = useRef(new Animated.Value(ball.pos.x)).current;
+  const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
+
+  const moveBallPos = () => {
+    if (gameState == GFSM.Playing) {
+      Animated.parallel([
+        Animated.spring(ballAnimX, {
+          toValue: ball.GetNextPos().x,
+          duration: DELTA,
+          useNativeDriver: false
+        }),
+        Animated.spring(ballAnimY, {
+          toValue: ball.GetNextPos().y,
+          duration: DELTA,
+          useNativeDriver: false
+        })
+      ]).start(() => { console.log(counter); counter++; moveBallPos() });
+
+    }
+
+  }
+
+
   const panResponder = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: () => {
       if (gameState == GFSM.GameStart || gameState == GFSM.Playing) {
@@ -155,7 +170,7 @@ export default function App() {
     onPanResponderGrant: () => {
       pan.setOffset({ x: pan.x._value, y: pan.y._value });
       //on paddle move, game should start only if this is the gamestart state
-      if(gameState == GFSM.GameStart){
+      if (gameState == GFSM.GameStart) {
         startBallSim();
       }
     },
@@ -182,7 +197,7 @@ export default function App() {
   return (
     <SafeAreaView>
       <View style={styles.Background}>
-        <Animated.View style={styles.ball}></Animated.View>
+        <Animated.View style={[styles.ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
         <View style={styles.paddle}>
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
