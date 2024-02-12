@@ -110,7 +110,7 @@ export default function App() {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
     },
-    speed: 2,
+    speed: 5,
     collidersArr: []
   }
   //#endregion
@@ -128,10 +128,7 @@ export default function App() {
 
     moveBallPos();
   }
-  //delay for ms 
-  // const delay = ms => new Promise(res => setTimeout(res, ms));
-  function RunSim() {
-  }
+
   const ballAnimX = useRef(new Animated.Value(ball.pos.x)).current;
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
