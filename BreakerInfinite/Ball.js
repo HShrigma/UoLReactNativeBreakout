@@ -11,6 +11,7 @@ export class Ball {
     brickColls;
     screenbounds;
     difficultyMultiplier = 1.005;
+    mag = 1;
     //#endregion
 
     constructor(sizeXY, posXY, collidersArr, screenWH, speed, paddle) {
@@ -85,14 +86,32 @@ export class Ball {
         }
         return { lowest: lowest, left: diffLeft, right: diffRight, top: diffTop, bot: diffBot }
     }
-    SetDir(collision, diffs) {
-        //if ball is closer to bottom
+    SetDir(diffs, isPaddle = false) {
+        this.mag = 1;
+        //Y collision
         if (diffs.bot == diffs.lowest || diffs.top == diffs.lowest) {
             this.direction.y *= -1;
+            if (isPaddle) {
+                let paddleSizeX = (this.paddleColl.right - this.paddleColl.left); 
+                let toLeft = this.paddleColl.left + (paddleSizeX/3);
+                let toMid = toLeft + (paddleSizeX/3);
+                if (this.pos.x <= toLeft && this.pos.x + this.size.x >= this.paddleColl.left) {
+                    this.direction.x = -1;
+                }
+                else if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft) ){
+                    this.direction.x = 0;
+                }
+                else{
+                    this.direction.x = 1;
+                }
+            }
         }
-        //if ball is closer to left
+        //X collision
         if (diffs.left == diffs.lowest || diffs.right == diffs.lowest) {
             this.direction.x *= -1;
+        }
+        if(this.direction.x == 0){
+            this.mag = 2;
         }
     }
     SetDisplacement(collision, diffs) {
@@ -113,10 +132,10 @@ export class Ball {
             this.pos.x = collision.collider.right;
         }
     }
-    OnCollisionEnter(collision) {
+    OnCollisionEnter(collision, isPaddle = false) {
         this.speed *= this.difficultyMultiplier;
         let diffs = this.GetPosCollDiffs(collision);
-        this.SetDir(collision, diffs);
+        this.SetDir(diffs, isPaddle);
         this.SetDisplacement(collision, diffs);
     }
 
@@ -136,7 +155,7 @@ export class Ball {
         let collision = { collides: false };
         if (this.CheckBorders(this.paddleColl).collides == true) {
             collision = this.CheckBorders(this.paddleColl);
-            this.OnCollisionEnter(collision);
+            this.OnCollisionEnter(collision, true);
         }
     }
     //Displace & reverse direction based on collision with screen bounds if collision is there
@@ -195,9 +214,8 @@ export class Ball {
 
     Move() {
         //move to position
-        let magnitude = Math.sqrt(this.direction.x * this.direction.x + this.direction.y * this.direction.y);
-        this.pos.x += magnitude * this.speed * this.direction.x;
-        this.pos.y += magnitude * this.speed * this.direction.y;
+        this.pos.x += this.mag * this.speed * this.direction.x;
+        this.pos.y += this.mag * this.speed * this.direction.y;
         //change position & direction if it collides with anything
         this.SimulatePhysics();
     }
