@@ -110,7 +110,7 @@ export default function App() {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
     },
-    speed: 5,
+    speed: 2,
     collidersArr: []
   }
   //#endregion
@@ -119,9 +119,7 @@ export default function App() {
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
 
   //generate ball
-  ballStats.collidersArr.push({tag:"paddle", obj: paddle});
-
-  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed);
+  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
 
   //#region Physics Functions
   function startBallSim() {
@@ -138,19 +136,20 @@ export default function App() {
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
   const moveBallPos = () => {
+    ball.Move();
     if (gameState == GFSM.Playing) {
       Animated.parallel([
         Animated.timing(ballAnimX, {
-          toValue: ball.GetNextPos().x,
+          toValue: ball.pos.x,
           duration: DELTA,
           useNativeDriver: false
         }),
         Animated.timing(ballAnimY, {
-          toValue: ball.GetNextPos().y,
+          toValue: ball.pos.y,
           duration: DELTA,
           useNativeDriver: false
         })
-      ]).start(() => { ball.UpdateCollidersForObject({tag:"paddle",obj: paddle}); moveBallPos(); });
+      ]).start(() => { ball.UpdateBrickColliders({ tag: "paddle", obj: paddle }); moveBallPos(); });
 
     }
 
@@ -186,6 +185,8 @@ export default function App() {
         //rel position(0 starts at width/2) = pan.x._value
         paddle.onTouchHeldEvent(pan.x._value);
         setPaddleX(paddle.pos.x);
+        //update paddle collider in ball
+        ball.UpdatePaddleCollider(paddle);
       }
     }),
     onPanResponderRelease: () => { }
