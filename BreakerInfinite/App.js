@@ -34,7 +34,7 @@ const paddleSizeXCoeff = .3;
 //What amount of the height of the screen is the paddle size, must be in range 0-1
 const paddleSizeYCoeff = .04;
 //Only 1 coeff for ball as it will be a circle
-const ballSizeCoeff = .05;
+const ballSizeCoeff = .07;
 //#region Stylesheet
 function CreateStyles(width, height, paddle, pan, ball) {
   return StyleSheet.create({
@@ -110,7 +110,7 @@ export default function App() {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
     },
-    speed: 5,
+    speed: 15,
     collidersArr: []
   }
   //#endregion

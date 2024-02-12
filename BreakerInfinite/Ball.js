@@ -10,7 +10,7 @@ export class Ball {
     paddleColl;
     brickColls;
     screenbounds;
-    difficultyMultiplier = 1.05;
+    difficultyMultiplier = 1.005;
     //#endregion
 
     constructor(sizeXY, posXY, collidersArr, screenWH, speed, paddle) {
@@ -36,19 +36,6 @@ export class Ball {
             right: screenWH.w - this.size.x
         }
     }
-
-    //Helpers gotten from GitHub:
-    //https://gist.github.com/xposedbones/75ebaef3c10060a3ee3b246166caab56
-    //Comments, mekb-turtle commented on Jun 28, 2022:
-    // "simpler version:
-    // const lerp = (a, b, t) => (b-a)*t+a;
-    // const unlerp = (a, b, t) => (t-a)/(b-a);
-    // const map = (a1, b1, a2, b2, t) => lerp(a2, b2, unlerp(a1, b1, t));"
-
-    lerp = (a, b, t) => (b - a) * t + a;
-    unlerp = (a, b, t) => (t - a) / (b - a);
-    map = (a1, b1, a2, b2, t) => this.lerp(a2, b2, this.unlerp(a1, b1, t));
-
     //#region Colliders: Build & Update
     BuildRectCollider(shape) {
         return {
@@ -100,28 +87,13 @@ export class Ball {
     }
     SetDir(collision, diffs) {
         //if ball is closer to bottom
-        if (diffs.bot == diffs.lowest) {
-            this.direction.x = this.map(collision.collider.left, collision.collider.right, -1, 1, this.pos.x);
-            this.direction.y *= -1;
-        }
-        //if ball is closer to top
-        if (diffs.top == diffs.lowest) {
-            this.direction.x = this.map(collision.collider.left, collision.collider.right, -1, 1, this.pos.x);
+        if (diffs.bot == diffs.lowest || diffs.top == diffs.lowest) {
             this.direction.y *= -1;
         }
         //if ball is closer to left
-        if (diffs.left == diffs.lowest) {
-            this.direction.y = this.map(collision.collider.top, collision.collider.bottom, -1, 1, this.pos.y);
+        if (diffs.left == diffs.lowest || diffs.right == diffs.lowest) {
             this.direction.x *= -1;
         }
-        //if ball is closer to right
-        if (diffs.right == diffs.lowest) {
-            this.direction.y = this.map(collision.collider.top, collision.collider.bottom, -1, 1, this.pos.y);
-            this.direction.x *= -1;
-        }
-        console.log("dirX: " + this.direction.x);
-        console.log("dirY: " + this.direction.y);
-        console.log("mag: " + Math.sqrt(this.direction.x * this.direction.x + this.direction.y * this.direction.y));
     }
     SetDisplacement(collision, diffs) {
         //if ball is closer to bottom
@@ -151,8 +123,8 @@ export class Ball {
     CheckBorders(coll) {
         //check if within collission 
         if (
-            (this.pos.x <= coll.right && this.pos.x >= coll.left) &&
-            (this.pos.y <= coll.bottom && this.pos.y >= coll.top)) {
+            (this.pos.x <= coll.right && this.pos.x + this.size.x >= coll.left) &&
+            (this.pos.y <= coll.bottom && this.pos.y + this.size.y >= coll.top)) {
             return {
                 collides: true,
                 collider: coll
