@@ -135,7 +135,6 @@ export default function App() {
   //#region PhysicsObjects
   //generate paddle
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
-
   //generate ball
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
   var testBrick = new Brick(brickStats.sizeXY, brickStats.posXY);
@@ -143,8 +142,6 @@ export default function App() {
   //#region Physics Functions
   function startBallSim() {
     gameState = GFSM.Playing;
-    testArr = [];
-    console.log(testArr.length);
     ball.SetRandomUpDir();
 
     moveBallPos();
