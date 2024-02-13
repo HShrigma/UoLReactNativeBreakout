@@ -10,18 +10,21 @@ import {
   Text,
   View,
   Animated,
-  PanResponder
+  PanResponder,
+  useWindowDimensions
 } from 'react-native';
 
-import { useWindowDimensions } from 'react-native';
-import { Paddle } from './Paddle';
 import { useState, useRef } from 'react';
+
+import { Paddle } from './Paddle';
 import { Ball } from './Ball';
 import { Brick } from './Brick';
+import { BrickMatrix } from './BrickMatrix';
+
 const title = "Breaker: Infinite";
 
 const FPS = 60;
-const DELTA = 1000 / FPS;
+const DELTA = 1000 / FPS; //time for 1 frame in ms
 
 //Pseudo-enum with all game states
 const GFSM = {
@@ -29,14 +32,27 @@ const GFSM = {
   GameStart: 1,
   Playing: 2,
   GameOver: 3,
+  Paused: 4
 }
 var gameState = GFSM.GameStart;
-//What amount of the width of the screen is the paddle size, must be in range 0-1
+
+//#region Physics objects coefficients
+
+//all coeffs are multipliers applied to screenwidth/height
+//i.e. coeffX = 0.05 == 5% screen width
+//this is better when working with absolute positions
+
+//paddle coeffs
 const paddleSizeXCoeff = .3;
-//What amount of the height of the screen is the paddle size, must be in range 0-1
 const paddleSizeYCoeff = .04;
+
 //Only 1 coeff for ball as it will be a circle
 const ballSizeCoeff = .06;
+//brickCoeffs
+const brickSizeXCoeff = .2;
+const brickSizeYCoeff = .05;
+
+//#endregion
 //#region Stylesheet
 function CreateStyles(width, height, paddle, pan, ball, brick) {
   return StyleSheet.create({
@@ -72,19 +88,12 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       left: ball.pos.x,
       borderRadius: 50
     },
-    brick:
-    {
-      position: 'absolute',
-      left: brick.pos.x,
-      top: brick.pos.y,
-      width: brick.size.x,
-      height: brick.size.y,
-      backgroundColor: '#fff'
-    }
   });
 }
 //#endregion
 let counter = 0;
+const brickMatrix = new BrickMatrix();
+var matrixHasInit = false;
 export default function App() {
   //screen dimensions
   const { width, height } = useWindowDimensions();
@@ -122,13 +131,13 @@ export default function App() {
   }
   //test Brick dims
   const brickStats = {
-    sizeXY:{
-      x: width*0.2,
-      y: height*0.05
+    sizeXY: {
+      x: width * brickSizeXCoeff,
+      y: height * brickSizeYCoeff
     },
-    posXY:{
-      x: width/2,
-      y: height/2
+    posXY: {
+      x: width / 2,
+      y: height / 2
     }
   }
   //#endregion
@@ -137,7 +146,15 @@ export default function App() {
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
   //generate ball
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
-  var testBrick = new Brick(brickStats.sizeXY, brickStats.posXY);
+  //brickMatrix
+  if(!matrixHasInit){
+    let maxWH = {
+      w: width,
+      h: height
+    };
+    let brickSizeXY = brickStats.sizeXY;
+    brickMatrix.Init(maxWH,brickSizeXY);
+  }
   //#endregion
   //#region Physics Functions
   function startBallSim() {
@@ -207,9 +224,39 @@ export default function App() {
     onPanResponderRelease: () => { }
   })).current;
   //#endregion
+  //#Brick Matrix Rendering
+  let drawBrick = (brick) => {
+
+    return (
+      <View style={{
+        position: 'absolute',
+        left: brick.pos.x,
+        top: brick.pos.y,
+        width: brick.size.x,
+        height: brick.size.y,
+        backgroundColor: '#fff'
+      }}>
+      </View>
+    );
+  }
+
+  let drawMatrix = () => {
+    if(brickMatrix.CanGenRow()){
+      brickMatrix.AddNewRow();
+    }
+    for (let i = 0; i < brickMatrix.bricks.length; i++) {
+      for (let j = 0; j < brickMatrix.bricks[i].length; j++) {
+        if(brickMatrix.bricks[i][j] != ""){
+          // console.log("index: ["+i+"]["+j+"]:\nx:"+brickMatrix.bricks[i][j].pos.x+"\ny:"+brickMatrix.bricks[i][j].pos.y);
+          drawBrick(brickMatrix.bricks[i][j]);
+        }
+      }
+      
+    }
+  }
 
   //loading stylesheets in so they can make use of width/height dynamic dimensions
-  const styles = CreateStyles(width, height, paddle, pan, ball, testBrick);
+  const styles = CreateStyles(width, height, paddle, pan, ball);
   return (
     <SafeAreaView>
       <View style={styles.Background}>
@@ -218,7 +265,7 @@ export default function App() {
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
-        <View style = {styles.brick}></View>
+        {drawMatrix()}
       </View>
     </SafeAreaView>
 

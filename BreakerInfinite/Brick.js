@@ -1,6 +1,7 @@
 export class Brick{
     size;
     pos;
+    renders = true;
     constructor(sizeXY,posXY){
         this.size = sizeXY;
         this.pos = posXY;
@@ -8,5 +9,6 @@ export class Brick{
 
     OnHit(){
         //code to remove object
+        this.renders = false;
     }
 }
