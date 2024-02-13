@@ -93,8 +93,8 @@ export class Ball {
             this.direction.y *= -1;
             if (isPaddle) {
                 let paddleSizeX = (this.paddleColl.right - this.paddleColl.left); 
-                let toLeft = this.paddleColl.left + (paddleSizeX/3);
-                let toMid = toLeft + (paddleSizeX/3);
+                let toLeft = this.paddleColl.left + (paddleSizeX*0.4);
+                let toMid = toLeft + (paddleSizeX*0.2);
                 if (this.pos.x <= toLeft && this.pos.x + this.size.x >= this.paddleColl.left) {
                     this.direction.x = -1;
                 }

@@ -1,6 +1,7 @@
 //refrences: 
 // ReactNative documentation: https://reactnative.dev/
-// For delay function: Etienne, Martin, Nov 24 2017, Stack Overflow, https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
+// For delay function: Etienne, Martin, Nov 24 2017, Stack Overflow, 
+// https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
 import { StatusBar } from 'expo-status-bar';
 import {
   Button,
@@ -16,6 +17,7 @@ import { useWindowDimensions } from 'react-native';
 import { Paddle } from './Paddle';
 import { useState, useRef } from 'react';
 import { Ball } from './Ball';
+import { Brick } from './Brick';
 const title = "Breaker: Infinite";
 
 const FPS = 60;
@@ -36,7 +38,7 @@ const paddleSizeYCoeff = .04;
 //Only 1 coeff for ball as it will be a circle
 const ballSizeCoeff = .06;
 //#region Stylesheet
-function CreateStyles(width, height, paddle, pan, ball) {
+function CreateStyles(width, height, paddle, pan, ball, brick) {
   return StyleSheet.create({
     Background: {
       width: width,
@@ -72,7 +74,12 @@ function CreateStyles(width, height, paddle, pan, ball) {
     },
     brick:
     {
-      //tbd
+      position: 'absolute',
+      left: brick.pos.x,
+      top: brick.pos.y,
+      width: brick.size.x,
+      height: brick.size.y,
+      backgroundColor: '#fff'
     }
   });
 }
@@ -113,17 +120,31 @@ export default function App() {
     speed: 5,
     collidersArr: []
   }
+  //test Brick dims
+  const brickStats = {
+    sizeXY:{
+      x: width*0.2,
+      y: height*0.05
+    },
+    posXY:{
+      x: width/2,
+      y: height/2
+    }
+  }
   //#endregion
-
+  //#region PhysicsObjects
   //generate paddle
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
 
   //generate ball
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
-
+  var testBrick = new Brick(brickStats.sizeXY, brickStats.posXY);
+  //#endregion
   //#region Physics Functions
   function startBallSim() {
     gameState = GFSM.Playing;
+    testArr = [];
+    console.log(testArr.length);
     ball.SetRandomUpDir();
 
     moveBallPos();
@@ -191,7 +212,7 @@ export default function App() {
   //#endregion
 
   //loading stylesheets in so they can make use of width/height dynamic dimensions
-  const styles = CreateStyles(width, height, paddle, pan, ball);
+  const styles = CreateStyles(width, height, paddle, pan, ball, testBrick);
   return (
     <SafeAreaView>
       <View style={styles.Background}>
@@ -200,7 +221,7 @@ export default function App() {
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
-
+        <View style = {styles.brick}></View>
       </View>
     </SafeAreaView>
 
