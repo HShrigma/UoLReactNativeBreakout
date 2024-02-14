@@ -156,7 +156,6 @@ export default function App() {
     };
     let brickSizeXY = brickStats.sizeXY;
     brickMatrix.Init(maxWH, brickSizeXY);
-    console.log("HAS INIT!");
     matrixHasInit = true;
   }
 
@@ -164,6 +163,8 @@ export default function App() {
   //#region Physics Functions
   function AddBricks() {
     if (brickMatrix.CanGenRow()) {
+      brickMatrix.AddNewRow();
+      brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       setBricks(brickMatrix.bricks);
     }
@@ -194,9 +195,10 @@ export default function App() {
           duration: DELTA,
           useNativeDriver: false
         })
-      ]).start(() => { 
-       //update ball collision with bricks
-        moveBallPos(); });
+      ]).start(() => {
+        //update ball collision with bricks
+        moveBallPos();
+      });
 
     }
 
@@ -240,15 +242,16 @@ export default function App() {
   })).current;
   //#endregion
   //#Brick Matrix Rendering
-  let drawBrick = (brick) => {
-
+  let drawBrick = (brick,key) => {
     return (
-      <View style={{
+      <View 
+      key={key}
+      style={{
         position: 'absolute',
         left: brick.pos.x,
         top: brick.pos.y,
-        width: brick.size.x,
-        height: brick.size.y,
+        width: brickStats.sizeXY.x,
+        height: brickStats.sizeXY.y,
         backgroundColor: '#fff'
       }}>
       </View>
@@ -256,17 +259,21 @@ export default function App() {
   }
 
   let drawMatrix = () => {
-    for (let i = 0; i < brickMatrix.bricks.length; i++) {
-      for (let j = 0; j < brickMatrix.bricks[i].length; j++) {
-        if (brickMatrix.bricks[i][j] != "") {
-          console.log("index: [" + i + "][" + j + "]:\nx:" + brickMatrix.bricks[i][j].pos.x + "\ny:" + brickMatrix.bricks[i][j].pos.y);
-          console.log("Brick index: [" + i + "][" + j + "]:\nx:" + bricks[i][j].pos.x + "\ny:" + bricks[i][j].pos.y);
-          drawBrick(bricks[i][j]);
+    renderBricks = [];
+    if(matrixHasInit && bricks.length != 0){
+      for (let i = 0; i < bricks.length; i++) {
+        for (let j = 0; j < bricks[i].length; j++) {
+          if(bricks[i][j].renders){
+            key = i.toString()+j.toString();
+            console.log(bricks[i][j],key);
+            renderBricks.push(drawBrick(bricks[i][j],key)) ;          
+          }
         }
       }
-
+      console.log(renderBricks[0]);
+      return renderBricks;
     }
-  }
+ }
 
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const styles = CreateStyles(width, height, paddle, pan, ball);

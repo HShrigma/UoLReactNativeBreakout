@@ -18,15 +18,14 @@ export class BrickMatrix {
     GenRow() {
         let row = [];
         for (let i = 0; i < this.cols; i++) {
-            if (Math.random() <= this.randomCoeff) {
-                let brickXY = {
-                    x: (this.dims.w / this.cols) * i,
-                    y: 0
-                }
-                row.push(new Brick(this.brickSizeXY, brickXY))
+            let brickXY = {
+                x: (this.dims.w / this.cols) * i,
+                y: 0
             }
-            else {
-                row.push("");
+            row.push(new Brick(this.brickSizeXY, brickXY));
+            if (Math.random() > this.randomCoeff) {
+                row.push(new Brick(this.brickSizeXY, brickXY));
+                row[i].renders = false;
             }
         }
         return row;
