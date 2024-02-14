@@ -8,7 +8,6 @@ export class BrickMatrix {
     brickSizeXY;
     constructor() {
         this.bricks = [];
-        // this.AddNewRow();
     }
     Init(maxWH, brickSizeXY) {
         this.dims = maxWH;
