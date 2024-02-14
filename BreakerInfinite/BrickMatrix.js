@@ -1,7 +1,7 @@
 import { Brick } from "./Brick";
 export class BrickMatrix {
     bricks;
-    randomCoeff = 0.5;
+    randomCoeff = 0.75;
     dims;
     rows;
     cols;

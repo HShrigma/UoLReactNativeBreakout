@@ -108,11 +108,12 @@ export default function App() {
   });
   //bricks to be displayed
   const [bricks, setBricks] = useState(brickMatrix.bricks);
-  //simple reRender Call as when bricks are set brickMatrix produces a shallow call
+  //simple bool used to toggle re-render call 
   const [reRenderBricks, setReRenderBricks] = useState(false);
+
   //#endregion
 
-  //#region Starters
+  //#region Starters & misc
   //starter stats for paddle
   const paddleStats = {
     positionXY: {
@@ -133,7 +134,7 @@ export default function App() {
     },
     speed: 5
   }
-  //test Brick dims
+  //Brick dims
   const brickStats = {
     sizeXY: {
       x: width * brickSizeXCoeff,
@@ -144,6 +145,9 @@ export default function App() {
       y: height / 2
     }
   }
+  //misc i.e. helper functions and vars
+  //delay function, not mine, see references line 0
+  const delay = ms => new Promise(res => setTimeout(res, ms));
   //#endregion
   //#region PhysicsObjects
   //generate paddle
@@ -168,13 +172,16 @@ export default function App() {
     setReRenderBricks(true);
     ball.UpdateBrickColliders(brickMatrix.bricks);
   }
-  function AddBricks() {
-    if (brickMatrix.CanGenRow()) {
+  async function AddBricks() {
+    if (brickMatrix.CanGenRow() && gameState == GFSM.Playing) {
       brickMatrix.AddNewRow();
-      brickMatrix.AddNewRow();
-      brickMatrix.AddNewRow();
-      // setBricks(brickMatrix.bricks);
+      setBricks(brickMatrix.bricks);
+      setReRenderBricks(true);
       ball.UpdateBrickColliders(brickMatrix.bricks);
+      let waitForMS = 15000;
+      await delay(waitForMS);
+      console.log("waited "+waitForMS/1000+" seconds");
+      AddBricks();
     }
   }
   function startBallSim() {
@@ -255,52 +262,39 @@ export default function App() {
   })).current;
   //#endregion
   //#region Brick Matrix Rendering
-  // let drawBrick = (brick, key) => {
-  //   return (
-  //     <View
-  //       key={key}
-  //       style={{
-  //         position: 'absolute',
-  //         left: brick.pos.x,
-  //         top: brick.pos.y,
-  //         width: brickStats.sizeXY.x,
-  //         height: brickStats.sizeXY.y,
-  //         borderRadius: 10,
-  //         backgroundColor: '#fff'
-  //       }}>
-  //     </View>
-  //   );
-  // }
 
   let drawMatrix = (updateKey = false) => {
-    if(updateKey != false){
-      setReRenderBricks(false);
-    }
-    renderBricks = [];
-    if (matrixHasInit && bricks.length != 0) {
-      for (let i = 0; i < bricks.length; i++) {
-        for (let j = 0; j < bricks[i].length; j++) {
-          if (brickMatrix.bricks[i][j].renders) {
-            key = i.toString() + j.toString();
-            renderBricks.push((
-              <View
-                key={key}
-                style={{
-                  position: 'absolute',
-                  left: bricks[i][j].pos.x,
-                  top: bricks[i][j].pos.y,
-                  width: bricks[i][j].size.x,
-                  height: bricks[i][j].size.y,
-                  borderRadius: 10,
-                  backgroundColor: '#fff'
-                }}>
-              </View>
-            ));
+    if(gameState == GFSM.Playing || gameState == GFSM.GameStart || gameState == GFSM.Paused){
+      if(updateKey != false){
+        setReRenderBricks(false);
+      }
+      renderBricks = [];
+      if (matrixHasInit && bricks.length != 0) {
+        for (let i = 0; i < bricks.length; i++) {
+          for (let j = 0; j < bricks[i].length; j++) {
+            if (brickMatrix.bricks[i][j].renders) {
+              key = i.toString() + j.toString();
+              renderBricks.push((
+                <View
+                  key={key}
+                  style={{
+                    position: 'absolute',
+                    left: bricks[i][j].pos.x,
+                    top: bricks[i][j].pos.y,
+                    width: bricks[i][j].size.x,
+                    height: bricks[i][j].size.y,
+                    borderRadius: 10,
+                    backgroundColor: '#fff'
+                  }}>
+                </View>
+              ));
+            }
           }
         }
+        return renderBricks;
       }
-      return renderBricks;
     }
+    
   }
 //#endregion
   //loading stylesheets in so they can make use of width/height dynamic dimensions
