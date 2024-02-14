@@ -101,14 +101,14 @@ export class Ball {
             if (isPaddle) {
                 let paddleSizeX = (this.paddleColl.right - this.paddleColl.left);
                 let toLeft = this.paddleColl.left + (paddleSizeX * 0.4);
-                let toMid = toLeft + (paddleSizeX * 0.2);
-                if (this.pos.x <= toLeft && this.pos.x + this.size.x >= this.paddleColl.left) {
+                let toMid = toLeft + (paddleSizeX * 0.1);
+                if (this.pos.x <= toLeft) {
                     this.direction.x = -1;
                 }
-                if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft)) {
+                if (this.pos.x >= toLeft) {
                     this.direction.x = 0;
                 }
-                if (this.pos.x + this.size.x >= toMid){
+                if (this.pos.x >= toMid) {
                     this.direction.x = 1;
                 }
             }
@@ -209,7 +209,7 @@ export class Ball {
         let collIndexes = [];
         if (this.brickColls.length > 0) {
             collIndexes = this.CheckBricksCollision();
-            
+
         }
         //check collision with paddle
         this.CheckPaddleCollision();

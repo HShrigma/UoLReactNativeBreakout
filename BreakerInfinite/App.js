@@ -108,7 +108,8 @@ export default function App() {
   });
   //bricks to be displayed
   const [bricks, setBricks] = useState(brickMatrix.bricks);
-
+  //simple reRender Call as when bricks are set brickMatrix produces a shallow call
+  const [reRenderBricks, setReRenderBricks] = useState(false);
   //#endregion
 
   //#region Starters
@@ -149,7 +150,7 @@ export default function App() {
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
   //generate ball
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, { w: width, h: height }, ballStats.speed, paddle);
-  //brickMatrix
+  // Init brickMatrix
   if (!matrixHasInit) {
     let maxWH = {
       w: width,
@@ -164,7 +165,7 @@ export default function App() {
   //#region Physics & Game Functions
   function OnBricksHit(i, j) {
     brickMatrix.bricks[i][j].renders = false;
-    setBricks(brickMatrix.bricks);
+    setReRenderBricks(true);
     ball.UpdateBrickColliders(brickMatrix.bricks);
   }
   function AddBricks() {
@@ -172,7 +173,7 @@ export default function App() {
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
-      setBricks(brickMatrix.bricks);
+      // setBricks(brickMatrix.bricks);
       ball.UpdateBrickColliders(brickMatrix.bricks);
     }
   }
@@ -254,32 +255,35 @@ export default function App() {
   })).current;
   //#endregion
   //#region Brick Matrix Rendering
-  let drawBrick = (brick, key) => {
-    return (
-      <View
-        key={key}
-        style={{
-          position: 'absolute',
-          left: brick.pos.x,
-          top: brick.pos.y,
-          width: brickStats.sizeXY.x,
-          height: brickStats.sizeXY.y,
-          borderRadius: 10,
-          backgroundColor: '#fff'
-        }}>
-      </View>
-    );
-  }
+  // let drawBrick = (brick, key) => {
+  //   return (
+  //     <View
+  //       key={key}
+  //       style={{
+  //         position: 'absolute',
+  //         left: brick.pos.x,
+  //         top: brick.pos.y,
+  //         width: brickStats.sizeXY.x,
+  //         height: brickStats.sizeXY.y,
+  //         borderRadius: 10,
+  //         backgroundColor: '#fff'
+  //       }}>
+  //     </View>
+  //   );
+  // }
 
-  let drawMatrix = () => {
+  let drawMatrix = (updateKey = false) => {
+    if(updateKey != false){
+      setReRenderBricks(false);
+    }
     renderBricks = [];
     if (matrixHasInit && bricks.length != 0) {
       for (let i = 0; i < bricks.length; i++) {
         for (let j = 0; j < bricks[i].length; j++) {
-          if (bricks[i][j].renders) {
+          if (brickMatrix.bricks[i][j].renders) {
             key = i.toString() + j.toString();
             renderBricks.push((
-              <Animated.View
+              <View
                 key={key}
                 style={{
                   position: 'absolute',
@@ -290,7 +294,7 @@ export default function App() {
                   borderRadius: 10,
                   backgroundColor: '#fff'
                 }}>
-              </Animated.View>
+              </View>
             ));
           }
         }
@@ -309,7 +313,7 @@ export default function App() {
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
-        {drawMatrix()}
+        {drawMatrix(reRenderBricks)}
       </View>
     </SafeAreaView>
 
