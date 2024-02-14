@@ -130,8 +130,7 @@ export default function App() {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
     },
-    speed: 5,
-    collidersArr: []
+    speed: 5
   }
   //test Brick dims
   const brickStats = {
@@ -149,7 +148,7 @@ export default function App() {
   //generate paddle
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
   //generate ball
-  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
+  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, { w: width, h: height }, ballStats.speed, paddle);
   //brickMatrix
   if (!matrixHasInit) {
     let maxWH = {
@@ -165,17 +164,14 @@ export default function App() {
   //#region Physics Functions
   function AddBricks() {
     if (brickMatrix.CanGenRow()) {
-      console.log("CAN GEN ROW");
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       // brickMatrix.AddNewRow();
       // brickMatrix.AddNewRow();
-      
       setBricks(brickMatrix.bricks);
+      ball.UpdateBrickColliders(brickMatrix.bricks);
     }
-    else
-      console.log("CAN't GEN ROW");
   }
   function startBallSim() {
     gameState = GFSM.Playing;
@@ -190,7 +186,10 @@ export default function App() {
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
   const moveBallPos = () => {
-    ball.Move();
+    let collIndexes = ball.Move();
+    if(collIndexes != "none"){
+      console.log("hit at:" + collIndexes[0]+collIndexes[1]);
+    }
     if (gameState == GFSM.Playing) {
       Animated.parallel([
         Animated.timing(ballAnimX, {

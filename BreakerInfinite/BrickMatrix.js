@@ -72,20 +72,16 @@ export class BrickMatrix {
         }
     }
     AddNewRow() {
-        //pushing empty array for both use cases
-        //if no rows => bricks[0] is created
-        //for all rows => empty array will be filled by bricks[len-1]
-        //save bricks[0] to temp
+        //rows updated only by render values
         let temp = this.SaveRenders(this.GenRandomRow());
         let ind = 0;
-        temp.forEach(n => {console.log(ind + " " + n);ind++;});
         this.inserted++;
         for (let i = 0; i < this.inserted; i++) {
-            //save current row with Updated Y params
-            let current = this.SaveRenders(this.bricks[i]); //bricksY
-            //set current row to temp
+            //save current row render values
+            let current = this.SaveRenders(this.bricks[i]); //current render values
+            //set current row render values to temp
             this.bricks[i] = this.UpdateRowRenderValue(temp, this.bricks[i]);
-            //set temp to saved row
+            //set temp to saved row values
             temp = current;
         }
     }

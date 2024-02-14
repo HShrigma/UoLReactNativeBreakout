@@ -8,13 +8,13 @@ export class Ball {
 
     //#region Colliders
     paddleColl;
-    brickColls;
+    brickColls = [];
     screenbounds;
     difficultyMultiplier = 1.005;
     mag = 1;
     //#endregion
 
-    constructor(sizeXY, posXY, collidersArr, screenWH, speed, paddle) {
+    constructor(sizeXY, posXY, screenWH, speed, paddle) {
         //Own Stats
         this.size = sizeXY;
         this.pos = posXY;
@@ -28,7 +28,6 @@ export class Ball {
 
         //Colliders
         this.paddleColl = this.BuildRectCollider(paddle);
-        this.brickColls = this.BuildRectColliderShapesArr(collidersArr);
 
         this.screenbounds = {
             top: 0,
@@ -38,20 +37,21 @@ export class Ball {
         }
     }
     //#region Colliders: Build & Update
-    BuildRectCollider(shape) {
+    BuildRectCollider(shape, detect = true) {
         return {
             top: shape.pos.y,
             bottom: shape.pos.y + shape.size.y,
             left: shape.pos.x,
-            right: shape.pos.x + shape.size.x
+            right: shape.pos.x + shape.size.x,
+            detect: detect
         };
     }
 
-    BuildRectColliderShapesArr(initColls) {
+    BuildBrickColliderShapes(row) {
         var colls = [];
-        if (initColls.length != 0) {
-            for (let i = 0; i < initColls.length; i++) {
-                collider = this.BuildRectCollider(initColls[i]);
+        if (row.length != 0) {
+            for (let i = 0; i < row.length; i++) {
+                collider = this.BuildRectCollider(row[i], row[i].renders);
                 colls.push(collider);
             }
         }
@@ -59,16 +59,23 @@ export class Ball {
         return colls;
     }
 
+    BuildBrickMatrixCollider(brickMatrix) {
+        let colls = [];
+        for (let i = 0; i < brickMatrix.length; i++) {
+            colls.push(this.BuildBrickColliderShapes(brickMatrix[i]));
+        }
+        return colls;
+    }
     UpdatePaddleCollider(paddle) {
         this.paddleColl = this.BuildRectCollider(paddle);
     }
 
     UpdateBrickColliders(bricksMatrix) {
-        this.brickColls = this.BuildRectColliderShapesArr(bricksMatrix);
+        this.brickColls = this.BuildBrickMatrixCollider(bricksMatrix);
     }
     //#endregion
     GetPosCollDiffs(collision) {
-
+        // console.log("collision:"+collision.collider);
         let diffLeft = this.pos.x - collision.collider.left;
         let diffRight = collision.collider.right - (this.pos.x + this.size.x);
 
@@ -92,16 +99,16 @@ export class Ball {
         if (diffs.bot == diffs.lowest || diffs.top == diffs.lowest) {
             this.direction.y *= -1;
             if (isPaddle) {
-                let paddleSizeX = (this.paddleColl.right - this.paddleColl.left); 
-                let toLeft = this.paddleColl.left + (paddleSizeX*0.4);
-                let toMid = toLeft + (paddleSizeX*0.2);
+                let paddleSizeX = (this.paddleColl.right - this.paddleColl.left);
+                let toLeft = this.paddleColl.left + (paddleSizeX * 0.4);
+                let toMid = toLeft + (paddleSizeX * 0.2);
                 if (this.pos.x <= toLeft && this.pos.x + this.size.x >= this.paddleColl.left) {
                     this.direction.x = -1;
                 }
-                else if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft) ){
+                else if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft)) {
                     this.direction.x = 0;
                 }
-                else{
+                else {
                     this.direction.x = 1;
                 }
             }
@@ -110,7 +117,7 @@ export class Ball {
         if (diffs.left == diffs.lowest || diffs.right == diffs.lowest) {
             this.direction.x *= -1;
         }
-        if(this.direction.x == 0){
+        if (this.direction.x == 0) {
             this.mag = 2;
         }
     }
@@ -140,10 +147,10 @@ export class Ball {
     }
 
     CheckBorders(coll) {
-        //check if within collission 
         if (
             (this.pos.x <= coll.right && this.pos.x + this.size.x >= coll.left) &&
-            (this.pos.y <= coll.bottom && this.pos.y + this.size.y >= coll.top)) {
+            (this.pos.y <= coll.bottom && this.pos.y + this.size.y >= coll.top) &&
+            coll.detect) {
             return {
                 collides: true,
                 collider: coll
@@ -161,13 +168,19 @@ export class Ball {
     //Displace & reverse direction based on collision with screen bounds if collision is there
     CheckBricksCollision() {
         let collision = { collides: false };
+        let collIndexes = "none";
         for (let i = 0; i < this.brickColls.length; i++) {
-            if (this.CheckBorders(this.brickColls[i]).collides == true) {
-                collision = this.CheckBorders(this.brickColls[i]);
-                this.OnCollisionEnter(collision);
-                break;
+            for (let j = 0; j < this.brickColls[i].length; j++) {
+                if (this.CheckBorders(this.brickColls[i][j]).collides == true) {
+                    collision = this.CheckBorders(this.brickColls[i][j]);
+                    collIndexes = [i, j];
+                    this.OnCollisionEnter(collision);
+                    break;
+                }
             }
         }
+        //code to return collision indexes for brick to be destroyed
+        return collIndexes;
     }
 
     //Displace & reverse direction based on collision with screen bounds if collision is there
@@ -193,11 +206,16 @@ export class Ball {
     //simulates interaction with all physics entities
     SimulatePhysics() {
         //check possible collision with bricks
-        this.CheckBricksCollision();
+        let collIndexes = [];
+        if (this.brickColls.length > 0) {
+            collIndexes = this.CheckBricksCollision();
+            
+        }
         //check collision with paddle
         this.CheckPaddleCollision();
         //check if out of screen bounds
         this.KeepInScreen();
+        return collIndexes;
     }
 
     SetRandomUpDir() {
@@ -217,7 +235,7 @@ export class Ball {
         this.pos.x += this.mag * this.speed * this.direction.x;
         this.pos.y += this.mag * this.speed * this.direction.y;
         //change position & direction if it collides with anything
-        this.SimulatePhysics();
+        return this.SimulatePhysics();
     }
 
 }
