@@ -106,7 +106,9 @@ export default function App() {
     x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
     y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
   });
+  //bricks to be displayed
   const [bricks, setBricks] = useState(brickMatrix.bricks);
+  
   //#endregion
 
   //#region Starters
@@ -265,12 +267,10 @@ export default function App() {
         for (let j = 0; j < bricks[i].length; j++) {
           if(bricks[i][j].renders){
             key = i.toString()+j.toString();
-            console.log(bricks[i][j],key);
             renderBricks.push(drawBrick(bricks[i][j],key)) ;          
           }
         }
       }
-      console.log(renderBricks[0]);
       return renderBricks;
     }
  }
