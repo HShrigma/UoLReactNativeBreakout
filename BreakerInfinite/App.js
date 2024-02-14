@@ -108,7 +108,7 @@ export default function App() {
   });
   //bricks to be displayed
   const [bricks, setBricks] = useState(brickMatrix.bricks);
-  
+
   //#endregion
 
   //#region Starters
@@ -161,14 +161,17 @@ export default function App() {
   }
 
   //#endregion
-  //#region Physics Functions
+  //#region Physics & Game Functions
+  function OnBricksHit(i, j) {
+    brickMatrix.bricks[i][j].renders = false;
+    setBricks(brickMatrix.bricks);
+    ball.UpdateBrickColliders(brickMatrix.bricks);
+  }
   function AddBricks() {
     if (brickMatrix.CanGenRow()) {
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
-      // brickMatrix.AddNewRow();
-      // brickMatrix.AddNewRow();
       setBricks(brickMatrix.bricks);
       ball.UpdateBrickColliders(brickMatrix.bricks);
     }
@@ -186,11 +189,10 @@ export default function App() {
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
   const moveBallPos = () => {
-    let collIndexes = ball.Move();
-    if(collIndexes != "none"){
-      console.log("hit at:" + collIndexes[0]+collIndexes[1]);
-    }
+
     if (gameState == GFSM.Playing) {
+      let collIndexes = ball.Move();
+
       Animated.parallel([
         Animated.timing(ballAnimX, {
           toValue: ball.pos.x,
@@ -204,6 +206,9 @@ export default function App() {
         })
       ]).start(() => {
         //update ball collision with bricks
+        if (collIndexes != "none") {
+          OnBricksHit(collIndexes[0], collIndexes[1]);
+        }
         moveBallPos();
       });
 
@@ -245,42 +250,55 @@ export default function App() {
         ball.UpdatePaddleCollider(paddle);
       }
     }),
-    onPanResponderRelease: () => { }
+    onPanResponderRelease: () => { setBricks(brickMatrix.bricks);}
   })).current;
   //#endregion
-  //#Brick Matrix Rendering
-  let drawBrick = (brick,key) => {
+  //#region Brick Matrix Rendering
+  let drawBrick = (brick, key) => {
     return (
-      <View 
-      key={key}
-      style={{
-        position: 'absolute',
-        left: brick.pos.x,
-        top: brick.pos.y,
-        width: brickStats.sizeXY.x,
-        height: brickStats.sizeXY.y,
-        borderRadius: 10,
-        backgroundColor: '#fff'
-      }}>
+      <View
+        key={key}
+        style={{
+          position: 'absolute',
+          left: brick.pos.x,
+          top: brick.pos.y,
+          width: brickStats.sizeXY.x,
+          height: brickStats.sizeXY.y,
+          borderRadius: 10,
+          backgroundColor: '#fff'
+        }}>
       </View>
     );
   }
 
   let drawMatrix = () => {
     renderBricks = [];
-    if(matrixHasInit && bricks.length != 0){
+    if (matrixHasInit && bricks.length != 0) {
       for (let i = 0; i < bricks.length; i++) {
         for (let j = 0; j < bricks[i].length; j++) {
-          if(bricks[i][j].renders){
-            key = i.toString()+j.toString();
-            renderBricks.push(drawBrick(bricks[i][j],key)) ;          
+          if (bricks[i][j].renders) {
+            key = i.toString() + j.toString();
+            renderBricks.push((
+              <Animated.View
+                key={key}
+                style={{
+                  position: 'absolute',
+                  left: bricks[i][j].pos.x,
+                  top: bricks[i][j].pos.y,
+                  width: bricks[i][j].size.x,
+                  height: bricks[i][j].size.y,
+                  borderRadius: 10,
+                  backgroundColor: '#fff'
+                }}>
+              </Animated.View>
+            ));
           }
         }
       }
       return renderBricks;
     }
- }
-
+  }
+//#endregion
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const styles = CreateStyles(width, height, paddle, pan, ball);
   return (

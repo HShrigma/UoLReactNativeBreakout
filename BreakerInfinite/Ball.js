@@ -105,10 +105,10 @@ export class Ball {
                 if (this.pos.x <= toLeft && this.pos.x + this.size.x >= this.paddleColl.left) {
                     this.direction.x = -1;
                 }
-                else if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft)) {
+                if ((this.pos.x <= toMid && this.pos.x + this.size.x >= toLeft)) {
                     this.direction.x = 0;
                 }
-                else {
+                if (this.pos.x + this.size.x >= toMid){
                     this.direction.x = 1;
                 }
             }
