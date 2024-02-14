@@ -100,11 +100,13 @@ export default function App() {
   //#region States
   //PaddleX data as it will vary by moving it
   const [paddleX, setPaddleX] = useState(width / 2 - ((width * paddleSizeXCoeff) / 2));
+
   //Ball Position values in XY
   const [ballPos, setBallPos] = useState({
     x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
     y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
   });
+  const [bricks, setBricks] = useState(brickMatrix.bricks);
   //#endregion
 
   //#region Starters
@@ -147,20 +149,31 @@ export default function App() {
   //generate ball
   var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, ballStats.collidersArr, { w: width, h: height }, ballStats.speed, paddle);
   //brickMatrix
-  if(!matrixHasInit){
+  if (!matrixHasInit) {
     let maxWH = {
       w: width,
       h: height
     };
     let brickSizeXY = brickStats.sizeXY;
-    brickMatrix.Init(maxWH,brickSizeXY);
+    brickMatrix.Init(maxWH, brickSizeXY);
+    console.log("HAS INIT!");
+    matrixHasInit = true;
   }
+
   //#endregion
   //#region Physics Functions
+  function AddBricks() {
+    if (brickMatrix.CanGenRow()) {
+      brickMatrix.AddNewRow();
+      setBricks(brickMatrix.bricks);
+    }
+  }
   function startBallSim() {
     gameState = GFSM.Playing;
     ball.SetRandomUpDir();
-
+    if (matrixHasInit) {
+      AddBricks(brickMatrix.bricks);
+    }
     moveBallPos();
   }
 
@@ -181,7 +194,9 @@ export default function App() {
           duration: DELTA,
           useNativeDriver: false
         })
-      ]).start(() => { ball.UpdateBrickColliders({ tag: "paddle", obj: paddle }); moveBallPos(); });
+      ]).start(() => { 
+       //update ball collision with bricks
+        moveBallPos(); });
 
     }
 
@@ -241,17 +256,15 @@ export default function App() {
   }
 
   let drawMatrix = () => {
-    if(brickMatrix.CanGenRow()){
-      brickMatrix.AddNewRow();
-    }
     for (let i = 0; i < brickMatrix.bricks.length; i++) {
       for (let j = 0; j < brickMatrix.bricks[i].length; j++) {
-        if(brickMatrix.bricks[i][j] != ""){
-          // console.log("index: ["+i+"]["+j+"]:\nx:"+brickMatrix.bricks[i][j].pos.x+"\ny:"+brickMatrix.bricks[i][j].pos.y);
-          drawBrick(brickMatrix.bricks[i][j]);
+        if (brickMatrix.bricks[i][j] != "") {
+          console.log("index: [" + i + "][" + j + "]:\nx:" + brickMatrix.bricks[i][j].pos.x + "\ny:" + brickMatrix.bricks[i][j].pos.y);
+          console.log("Brick index: [" + i + "][" + j + "]:\nx:" + bricks[i][j].pos.x + "\ny:" + bricks[i][j].pos.y);
+          drawBrick(bricks[i][j]);
         }
       }
-      
+
     }
   }
 
