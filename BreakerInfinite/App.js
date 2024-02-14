@@ -165,11 +165,17 @@ export default function App() {
   //#region Physics Functions
   function AddBricks() {
     if (brickMatrix.CanGenRow()) {
+      console.log("CAN GEN ROW");
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
       brickMatrix.AddNewRow();
+      // brickMatrix.AddNewRow();
+      // brickMatrix.AddNewRow();
+      
       setBricks(brickMatrix.bricks);
     }
+    else
+      console.log("CAN't GEN ROW");
   }
   function startBallSim() {
     gameState = GFSM.Playing;
@@ -254,6 +260,7 @@ export default function App() {
         top: brick.pos.y,
         width: brickStats.sizeXY.x,
         height: brickStats.sizeXY.y,
+        borderRadius: 10,
         backgroundColor: '#fff'
       }}>
       </View>
