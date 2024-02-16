@@ -12,6 +12,7 @@ export class Ball {
     screenbounds;
     difficultyMultiplier = 1.005;
     mag = 1;
+    gameOver = false;
     //#endregion
 
     constructor(sizeXY, posXY, screenWH, speed, paddle) {
@@ -165,7 +166,7 @@ export class Ball {
             this.OnCollisionEnter(collision, true);
         }
     }
-    //Displace & reverse direction based on collision with screen bounds if collision is there
+    //Displace & reverse direction based on collision with bricks if collision is there
     CheckBricksCollision() {
         let collision = { collides: false };
         let collIndexes = "none";
@@ -201,6 +202,7 @@ export class Ball {
         if (this.pos.y >= this.screenbounds.bottom) {
             this.pos.y = this.screenbounds.bottom;
             this.direction.y *= -1;
+            this.gameOver = true;
         }
     }
     //simulates interaction with all physics entities

@@ -102,8 +102,11 @@ let counter = 0;
 const brickMatrix = new BrickMatrix();
 var matrixHasInit = false;
 var score = 0;
-var brickSpawnTime = 15000;
+var brickSpawnTime = 1500;
 export default function App() {
+  if (gameState == GFSM.GameOver) {
+    //insert game over logic
+  }
   //screen dimensions
   const { width, height } = useWindowDimensions();
   //#region States
@@ -186,15 +189,22 @@ export default function App() {
     Vibration.vibrate(100);
   }
   async function TryAddBricks() {
+
     if (brickMatrix.CanGenRow()) {
-      AddBricks();
+      if (gameState == GFSM.Playing) {
+        AddBricks();
+      }
     }
     else {
       gameState = GFSM.GameOver;
     }
-    brickSpawnTime *= brickDifficultyCoeff;
+
+    if (brickSpawnTime > 750) {
+      brickSpawnTime *= brickDifficultyCoeff;
+    }
+
+
     await delay(Math.round(brickSpawnTime));
-    console.log("waited " + brickSpawnTime / 1000 + " seconds");
     if (gameState == GFSM.Playing || gameState == GFSM.Paused) {
       TryAddBricks();
     }
@@ -240,7 +250,12 @@ export default function App() {
         if (collIndexes != "none") {
           OnBricksHit(collIndexes[0], collIndexes[1]);
         }
-        moveBallPos();
+        if(ball.gameOver){
+          gameState = GFSM.gameOver;
+        }
+        else{
+          moveBallPos();
+        }
       });
 
     }
@@ -325,7 +340,6 @@ export default function App() {
   let displayScore = (reRender) => {
     if (reRender == true) {
       setReRenderScore(false);
-      console.log(score);
     }
     return (<Text style={styles.score}>{score}</Text>)
   }

@@ -1,7 +1,7 @@
 import { Brick } from "./Brick";
 export class BrickMatrix {
     bricks;
-    randomCoeff = 0.75;
+    randomCoeff = 0.5;
     dims;
     rows;
     cols;
@@ -15,7 +15,6 @@ export class BrickMatrix {
         this.rows = Math.round(this.dims.h / this.brickSizeXY.y);
         this.cols = Math.round(this.dims.w / this.brickSizeXY.x);
         this.bricks = this.BuildMatrix();
-        this.inserted = 0;
     }
     BuildMatrix() {
         matr = [];
@@ -42,10 +41,16 @@ export class BrickMatrix {
     //Get array of render values (t/f) from row
     SaveRenders(row){
         renderValues = [];
-        row.forEach(brick => {
-            renderValues.push(brick.renders);
-        });
-        return renderValues;
+        try{
+            row.forEach(brick => {
+                renderValues.push(brick.renders);
+            });
+            return renderValues;
+        }
+        catch(err){
+            console.error("unexpected row error:" + err + "\nRow:" + row);
+        }
+
     }
     //update a row's render Values based on the last one
     UpdateRowRenderValue(renderValues, toRow) {
@@ -56,32 +61,34 @@ export class BrickMatrix {
     }
 
     CanGenRow() {
-        this.bricks[this.rows - 1].forEach(n => {
-            if (n.renders)
-                return false;
-        });
-        return true;
+        let lastRowNoRender = true;
+        for (let i = 0; i < this.bricks[this.bricks.length-1].length; i++) {
+            if (this.bricks[this.bricks.length-1][i].renders){
+                lastRowNoRender = false;
+                break;
+            }   
+        }
+        return lastRowNoRender;
     }
     LogTruthTable() {
-        for (let i = 0; i < this.inserted; i++) {
+        for (let i = 0; i < this.bricks.length; i++) {
             let logStr = "";
             for (let j = 0; j < this.bricks[i].length; j++) {
                 logStr += "[" + i + "]" + "[" + j + "]: " + this.bricks[i][j].renders + " " + this.bricks[i][j].pos.y + " ";
             }
-            console.log(this.inserted + " " + logStr);
+            console.log(logStr);
         }
     }
     AddNewRow() {
         //rows updated only by render values
         let temp = this.SaveRenders(this.GenRandomRow());
         let ind = 0;
-        this.inserted++;
-        for (let i = 0; i < this.inserted; i++) {
+        for (let i = 0; i < this.bricks.length; i++) {
             //save current row render values
             let current = this.SaveRenders(this.bricks[i]); //current render values
-            //set current row render values to temp
+            //set current row  renders to temp
             this.bricks[i] = this.UpdateRowRenderValue(temp, this.bricks[i]);
-            //set temp to saved row values
+            //set temp renders to saved row
             temp = current;
         }
     }
