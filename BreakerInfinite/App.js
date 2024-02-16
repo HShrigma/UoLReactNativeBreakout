@@ -11,7 +11,8 @@ import {
   View,
   Animated,
   PanResponder,
-  useWindowDimensions
+  useWindowDimensions,
+  Vibration
 } from 'react-native';
 
 import { useState, useRef } from 'react';
@@ -41,6 +42,7 @@ var gameState = GFSM.GameStart;
 //all coeffs are multipliers applied to screenwidth/height
 //i.e. coeffX = 0.05 == 5% screen width
 //this is better when working with absolute positions
+//other coeffs can be applied to numbers as % modifiers such as brickDifficulty Coeff;
 
 //paddle coeffs
 const paddleSizeXCoeff = .3;
@@ -51,7 +53,7 @@ const ballSizeCoeff = .06;
 //brickCoeffs
 const brickSizeXCoeff = .2;
 const brickSizeYCoeff = .05;
-
+const brickDifficultyCoeff = .95;
 //#endregion
 //#region Stylesheet
 function CreateStyles(width, height, paddle, pan, ball, brick) {
@@ -88,12 +90,19 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       left: ball.pos.x,
       borderRadius: 50
     },
+    score: {
+      fontSize: width / 3,
+      color: "#fff",
+      textAlign: 'center'
+    }
   });
 }
 //#endregion
 let counter = 0;
 const brickMatrix = new BrickMatrix();
 var matrixHasInit = false;
+var score = 0;
+var brickSpawnTime = 15000;
 export default function App() {
   //screen dimensions
   const { width, height } = useWindowDimensions();
@@ -102,15 +111,13 @@ export default function App() {
   const [paddleX, setPaddleX] = useState(width / 2 - ((width * paddleSizeXCoeff) / 2));
 
   //Ball Position values in XY
-  const [ballPos, setBallPos] = useState({
-    x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
-    y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
-  });
   //bricks to be displayed
   const [bricks, setBricks] = useState(brickMatrix.bricks);
   //simple bool used to toggle re-render call 
   const [reRenderBricks, setReRenderBricks] = useState(false);
-
+  // const [score,setScore] = useState(0);
+  //simple bool used to toggle re-render call 
+  const [reRenderScore, setReRenderScore] = useState(false);
   //#endregion
 
   //#region Starters & misc
@@ -127,7 +134,10 @@ export default function App() {
     speed: 10
   }
   const ballStats = {
-    positionXY: ballPos,
+    positionXY: {
+      x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
+      y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
+    },
     sizeXY: {
       x: width * ballSizeCoeff,
       y: width * ballSizeCoeff,
@@ -171,24 +181,37 @@ export default function App() {
     brickMatrix.bricks[i][j].renders = false;
     setReRenderBricks(true);
     ball.UpdateBrickColliders(brickMatrix.bricks);
+    score += 5;
+    setReRenderScore(true);
+    Vibration.vibrate(100);
   }
-  async function AddBricks() {
-    if (brickMatrix.CanGenRow() && gameState == GFSM.Playing) {
-      brickMatrix.AddNewRow();
-      setBricks(brickMatrix.bricks);
-      setReRenderBricks(true);
-      ball.UpdateBrickColliders(brickMatrix.bricks);
-      let waitForMS = 15000;
-      await delay(waitForMS);
-      console.log("waited "+waitForMS/1000+" seconds");
+  async function TryAddBricks() {
+    if (brickMatrix.CanGenRow()) {
       AddBricks();
     }
+    else {
+      gameState = GFSM.GameOver;
+    }
+    brickSpawnTime *= brickDifficultyCoeff;
+    await delay(Math.round(brickSpawnTime));
+    console.log("waited " + brickSpawnTime / 1000 + " seconds");
+    if (gameState == GFSM.Playing || gameState == GFSM.Paused) {
+      TryAddBricks();
+    }
+
+  }
+  function AddBricks() {
+
+    brickMatrix.AddNewRow();
+    setBricks(brickMatrix.bricks);
+    setReRenderBricks(true);
+    ball.UpdateBrickColliders(brickMatrix.bricks);
   }
   function startBallSim() {
     gameState = GFSM.Playing;
     ball.SetRandomUpDir();
     if (matrixHasInit) {
-      AddBricks(brickMatrix.bricks);
+      TryAddBricks();
     }
     moveBallPos();
   }
@@ -258,14 +281,14 @@ export default function App() {
         ball.UpdatePaddleCollider(paddle);
       }
     }),
-    onPanResponderRelease: () => { setBricks(brickMatrix.bricks);}
+    onPanResponderRelease: () => { setBricks(brickMatrix.bricks); }
   })).current;
   //#endregion
   //#region Brick Matrix Rendering
 
-  let drawMatrix = (updateKey = false) => {
-    if(gameState == GFSM.Playing || gameState == GFSM.GameStart || gameState == GFSM.Paused){
-      if(updateKey != false){
+  let drawMatrix = (reRender = false) => {
+    if (gameState == GFSM.Playing || gameState == GFSM.GameStart || gameState == GFSM.Paused) {
+      if (reRender != false) {
         setReRenderBricks(false);
       }
       renderBricks = [];
@@ -294,20 +317,29 @@ export default function App() {
         return renderBricks;
       }
     }
-    
+
   }
-//#endregion
+  //#endregion
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const styles = CreateStyles(width, height, paddle, pan, ball);
+  let displayScore = (reRender) => {
+    if (reRender == true) {
+      setReRenderScore(false);
+      console.log(score);
+    }
+    return (<Text style={styles.score}>{score}</Text>)
+  }
   return (
     <SafeAreaView>
       <View style={styles.Background}>
+        {displayScore(reRenderScore)}
         <Animated.View style={[styles.ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
         <View style={styles.paddle}>
         </View>
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
         {drawMatrix(reRenderBricks)}
+        <StatusBar hidden />
       </View>
     </SafeAreaView>
 
