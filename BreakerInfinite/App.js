@@ -12,6 +12,7 @@ import {
   Animated,
   PanResponder,
   useWindowDimensions,
+  TouchableOpacity, Image,
   Vibration
 } from 'react-native';
 
@@ -92,9 +93,19 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     },
     score: {
       fontSize: width / 3,
-      color: "#fff",
+      color: "#707070",
       textAlign: 'center'
-    }
+    },
+    pauseButtonTO: {
+      position: 'absolute',
+      left: width - (width * 0.15),
+      top: 0,
+    },
+    pauseButtonIMG: {
+      position: 'absolute',
+      width: width / 10,
+      height: width / 10,
+    },
   });
 }
 //#endregion
@@ -102,7 +113,7 @@ let counter = 0;
 const brickMatrix = new BrickMatrix();
 var matrixHasInit = false;
 var score = 0;
-var brickSpawnTime = 1500;
+var brickSpawnTime = 15000;
 export default function App() {
   if (gameState == GFSM.GameOver) {
     //insert game over logic
@@ -250,10 +261,10 @@ export default function App() {
         if (collIndexes != "none") {
           OnBricksHit(collIndexes[0], collIndexes[1]);
         }
-        if(ball.gameOver){
+        if (ball.gameOver) {
           gameState = GFSM.gameOver;
         }
-        else{
+        else {
           moveBallPos();
         }
       });
@@ -335,26 +346,52 @@ export default function App() {
 
   }
   //#endregion
+
   //loading stylesheets in so they can make use of width/height dynamic dimensions
   const styles = CreateStyles(width, height, paddle, pan, ball);
+  //#region Dynamic elements rendering
   let displayScore = (reRender) => {
     if (reRender == true) {
       setReRenderScore(false);
     }
     return (<Text style={styles.score}>{score}</Text>)
   }
+  let displayPause = () => {
+
+    return (<TouchableOpacity style={styles.pauseButtonTO} onPressIn={onPausePressIn} activeOpacity={0.5}>
+      <Image
+        style={styles.pauseButtonIMG}
+        source={require("./assets/pause.png")} />
+    </TouchableOpacity>);
+  }
+  //#endregion
+  //#region OnButtonPress functions
+  let onPausePressIn = () => {
+    
+  }
+  //#endregion
   return (
     <SafeAreaView>
+      {/*View containing each game object*/}
       <View style={styles.Background}>
+        {/*First draw bricks */}
+        {drawMatrix(reRenderBricks)}
+        {/*Draw Score over bricks so they don't cover it*/}
         {displayScore(reRenderScore)}
+        {/*Ball Should be displayed over bricks and score */}
         <Animated.View style={[styles.ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
-        <View style={styles.paddle}>
-        </View>
+        {/* Paddle is drawn above every other game object*/}
         <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
-        {drawMatrix(reRenderBricks)}
-        <StatusBar hidden />
+        <View style={styles.paddle}>
+        </View>
+
+        {/*View containing each UI element*/}
+        {/*Render Pause Button*/}
+        {displayPause()}
       </View>
+
+      <StatusBar hidden />
     </SafeAreaView>
 
   );
