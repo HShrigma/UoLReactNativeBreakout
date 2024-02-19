@@ -106,6 +106,16 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       width: width / 10,
       height: width / 10,
     },
+    resumeButtonTO: {
+      position: 'absolute',
+      left: width / 2 - (width * 0.15),
+      top: height / 2 + (width * 0.3),
+    },
+    resumeButtonIMG: {
+      position: 'absolute',
+      width: width * 0.3,
+      height: width * 0.3,
+    },
   });
 }
 //#endregion
@@ -132,6 +142,7 @@ export default function App() {
   // const [score,setScore] = useState(0);
   //simple bool used to toggle re-render call 
   const [reRenderScore, setReRenderScore] = useState(false);
+  const [reRenderPause, setReRenderPause] = useState(false);
   //#endregion
 
   //#region Starters & misc
@@ -200,20 +211,18 @@ export default function App() {
     Vibration.vibrate(100);
   }
   async function TryAddBricks() {
-
     if (brickMatrix.CanGenRow()) {
       if (gameState == GFSM.Playing) {
         AddBricks();
+
+        if (brickSpawnTime > 750) {
+          brickSpawnTime *= brickDifficultyCoeff;
+        }
       }
     }
     else {
       gameState = GFSM.GameOver;
     }
-
-    if (brickSpawnTime > 750) {
-      brickSpawnTime *= brickDifficultyCoeff;
-    }
-
 
     await delay(Math.round(brickSpawnTime));
     if (gameState == GFSM.Playing || gameState == GFSM.Paused) {
@@ -240,11 +249,10 @@ export default function App() {
   const ballAnimX = useRef(new Animated.Value(ball.pos.x)).current;
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
-  const moveBallPos = () => {
+  const moveBallPos = async () => {
 
     if (gameState == GFSM.Playing) {
       let collIndexes = ball.Move();
-
       Animated.parallel([
         Animated.timing(ballAnimX, {
           toValue: ball.pos.x,
@@ -268,7 +276,10 @@ export default function App() {
           moveBallPos();
         }
       });
-
+    }
+    if (gameState == GFSM.Paused) {
+      await delay(DELTA);
+      moveBallPos();
     }
 
   }
@@ -356,18 +367,34 @@ export default function App() {
     }
     return (<Text style={styles.score}>{score}</Text>)
   }
-  let displayPause = () => {
-
-    return (<TouchableOpacity style={styles.pauseButtonTO} onPressIn={onPausePressIn} activeOpacity={0.5}>
-      <Image
-        style={styles.pauseButtonIMG}
-        source={require("./assets/pause.png")} />
-    </TouchableOpacity>);
+  let displayPauseResume = (reRender) => {
+    if (reRender) {
+      setReRenderPause(false);
+    }
+    if (gameState == GFSM.Playing) {
+      return (<TouchableOpacity style={styles.pauseButtonTO} onPress={onPausePress} activeOpacity={0.5}>
+        <Image
+          style={styles.pauseButtonIMG}
+          source={require("./assets/pause.png")} />
+      </TouchableOpacity>);
+    }
+    if (gameState == GFSM.Paused) {
+      return (<TouchableOpacity style={styles.resumeButtonTO} onPress={onResumePress} activeOpacity={0.5}>
+        <Image
+          style={styles.resumeButtonIMG}
+          source={require("./assets/play.png")} />
+      </TouchableOpacity>);
+    }
   }
   //#endregion
   //#region OnButtonPress functions
-  let onPausePressIn = () => {
-    
+  let onPausePress = () => {
+    gameState = GFSM.Paused;
+    setReRenderPause(true);
+  }
+  let onResumePress = () => {
+    gameState = GFSM.Playing;
+    setReRenderPause(true);
   }
   //#endregion
   return (
@@ -385,12 +412,9 @@ export default function App() {
         </Animated.View>
         <View style={styles.paddle}>
         </View>
-
-        {/*View containing each UI element*/}
         {/*Render Pause Button*/}
-        {displayPause()}
+        {displayPauseResume(reRenderPause)}
       </View>
-
       <StatusBar hidden />
     </SafeAreaView>
 

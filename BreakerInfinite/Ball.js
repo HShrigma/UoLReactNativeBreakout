@@ -180,7 +180,6 @@ export class Ball {
                 }
             }
         }
-        //code to return collision indexes for brick to be destroyed
         return collIndexes;
     }
 
@@ -211,7 +210,6 @@ export class Ball {
         let collIndexes = [];
         if (this.brickColls.length > 0) {
             collIndexes = this.CheckBricksCollision();
-
         }
         //check collision with paddle
         this.CheckPaddleCollision();
