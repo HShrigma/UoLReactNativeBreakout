@@ -70,6 +70,9 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       width: paddle.size.x,
       height: paddle.size.y,
       backgroundColor: "#fff",
+      borderColor: "#d6d6d6",
+      borderWidth: 5,
+      borderRadius: 25,
       position: 'absolute',
       top: paddle.pos.y,
       left: paddle.pos.x,
@@ -77,7 +80,6 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     paddleInputArea: {
       width: width,
       height: paddle.size.y * 10,
-      // backgroundColor: "#FFA500",
       position: 'absolute',
       top: paddle.pos.y - 200,
       left: 0
@@ -85,7 +87,10 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     ball: {
       width: ball.size.x,
       height: ball.size.y,
-      backgroundColor: "#FF0000",
+      backgroundColor: "#fff",
+      borderColor: "#d6d6d6",
+      borderWidth: 3,
+      borderRadius: 25,
       position: 'absolute',
       top: ball.pos.y,
       left: ball.pos.x,
@@ -116,6 +121,42 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       width: width * 0.3,
       height: width * 0.3,
     },
+    GameOverMenu: {
+      position: 'absolute',
+      backgroundColor: "#4b5563",
+      left: width * 0.1,
+      top: height * 0.3,
+      width: width * 0.8,
+      height: height * 0.3,
+      borderWidth: 8,
+      borderColor: "#d6d6d6",
+      borderRadius: 20,
+      alignItems: 'flex-start',
+
+    },
+    GameOverText: {
+      flex: 1,
+      color: "#fff",
+      fontSize: Math.round(width / 15),
+      alignSelf: 'center',
+      textAlignVertical: 'center',
+      fontWeight: '500',
+      letterSpacing: 1.5
+    },
+    GameOverButtonRow: {
+      flex: 2,
+      flexDirection: 'row'
+    },
+    GameOverButton: {
+      flex: 1,
+      backgroundColor: "#6e7f96",
+      margin: width * 0.04,
+      textAlignVertical: 'center',
+      verticalAlign: 'middle',
+      borderWidth: 5,
+      borderColor: "#d6d6d6",
+      borderRadius: 20,
+    }
   });
 }
 //#endregion
@@ -123,16 +164,23 @@ let counter = 0;
 const brickMatrix = new BrickMatrix();
 var matrixHasInit = false;
 var score = 0;
+var initBrickSpawnTime = 15000;
 var brickSpawnTime = 15000;
+var ballHasInit = false;
+var ball;
+var bricksAdding = false;
 export default function App() {
-  if (gameState == GFSM.GameOver) {
-    //insert game over logic
-  }
   //screen dimensions
   const { width, height } = useWindowDimensions();
+  const initPaddleX = width / 2 - ((width * paddleSizeXCoeff) / 2);
+  const initBallPos = {
+    x: width / 2 + (width * ballSizeCoeff),
+    y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
+  };
+
   //#region States
   //PaddleX data as it will vary by moving it
-  const [paddleX, setPaddleX] = useState(width / 2 - ((width * paddleSizeXCoeff) / 2));
+  const [paddleX, setPaddleX] = useState(initPaddleX);
 
   //Ball Position values in XY
   //bricks to be displayed
@@ -140,9 +188,10 @@ export default function App() {
   //simple bool used to toggle re-render call 
   const [reRenderBricks, setReRenderBricks] = useState(false);
   // const [score,setScore] = useState(0);
-  //simple bool used to toggle re-render call 
+  //simple bools used to toggle re-render call 
   const [reRenderScore, setReRenderScore] = useState(false);
   const [reRenderPause, setReRenderPause] = useState(false);
+  const [reRenderGameOver, setReRenderGameOver] = useState(false);
   //#endregion
 
   //#region Starters & misc
@@ -150,7 +199,7 @@ export default function App() {
   const paddleStats = {
     positionXY: {
       x: paddleX,
-      y: height - (height * paddleSizeYCoeff),
+      y: height - (height * paddleSizeYCoeff * 2),
     },
     sizeXY: {
       x: width * paddleSizeXCoeff,
@@ -160,7 +209,7 @@ export default function App() {
   }
   const ballStats = {
     positionXY: {
-      x: width / 2 - ((width * paddleSizeXCoeff) / 2) + (width * ballSizeCoeff),
+      x: width / 2 + (width * ballSizeCoeff),
       y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
     },
     sizeXY: {
@@ -188,7 +237,10 @@ export default function App() {
   //generate paddle
   var paddle = new Paddle(paddleStats.sizeXY, paddleStats.positionXY, paddleStats.speed, width);
   //generate ball
-  var ball = new Ball(ballStats.sizeXY, ballStats.positionXY, { w: width, h: height }, ballStats.speed, paddle);
+  if (!ballHasInit) {
+    ball = new Ball(ballStats.sizeXY, ballStats.positionXY, { w: width, h: height }, ballStats.speed, paddle);
+    ballHasInit = true;
+  }
   // Init brickMatrix
   if (!matrixHasInit) {
     let maxWH = {
@@ -211,6 +263,7 @@ export default function App() {
     Vibration.vibrate(100);
   }
   async function TryAddBricks() {
+    bricksAdding = true;
     if (brickMatrix.CanGenRow()) {
       if (gameState == GFSM.Playing) {
         AddBricks();
@@ -222,12 +275,11 @@ export default function App() {
     }
     else {
       gameState = GFSM.GameOver;
+      setReRenderGameOver(true);
     }
 
     await delay(Math.round(brickSpawnTime));
-    if (gameState == GFSM.Playing || gameState == GFSM.Paused) {
-      TryAddBricks();
-    }
+    TryAddBricks();
 
   }
   function AddBricks() {
@@ -237,10 +289,10 @@ export default function App() {
     setReRenderBricks(true);
     ball.UpdateBrickColliders(brickMatrix.bricks);
   }
-  function startBallSim() {
+  function StartBallSim() {
     gameState = GFSM.Playing;
     ball.SetRandomUpDir();
-    if (matrixHasInit) {
+    if (matrixHasInit && !bricksAdding) {
       TryAddBricks();
     }
     moveBallPos();
@@ -250,7 +302,6 @@ export default function App() {
   const ballAnimY = useRef(new Animated.Value(ball.pos.y)).current;
 
   const moveBallPos = async () => {
-
     if (gameState == GFSM.Playing) {
       let collIndexes = ball.Move();
       Animated.parallel([
@@ -270,7 +321,10 @@ export default function App() {
           OnBricksHit(collIndexes[0], collIndexes[1]);
         }
         if (ball.gameOver) {
-          gameState = GFSM.gameOver;
+
+
+          gameState = GFSM.GameOver;
+          setReRenderGameOver(true);
         }
         else {
           moveBallPos();
@@ -282,6 +336,23 @@ export default function App() {
       moveBallPos();
     }
 
+  }
+  function RestartGame() {
+    brickSpawnTime = initBrickSpawnTime;
+    brickMatrix.Flush();
+    setPaddleX(initPaddleX);
+
+    ball.pos = initBallPos;
+    ballStats.positionXY = initBallPos;
+    ballAnimX.setValue(ball.pos.x);
+    ballAnimY.setValue(ball.pos.y);
+    ball.gameOver = false;
+    ball.speed = ballStats.speed;
+    ball.UpdateBrickColliders(brickMatrix.bricks);
+    ball.mag = 1;
+    score = 0;
+
+    gameState = GFSM.GameStart;
   }
   //#endregion
   //#region Pan and panResponder for paddle movement
@@ -299,7 +370,7 @@ export default function App() {
       pan.setOffset({ x: pan.x._value, y: pan.y._value });
       //on paddle move, game should start only if this is the gamestart state
       if (gameState == GFSM.GameStart) {
-        startBallSim();
+        StartBallSim();
       }
     },
     onPanResponderMove: Animated.event([
@@ -344,7 +415,10 @@ export default function App() {
                     width: bricks[i][j].size.x,
                     height: bricks[i][j].size.y,
                     borderRadius: 10,
-                    backgroundColor: '#fff'
+                    backgroundColor: "#fff",
+                    borderColor: "#d6d6d6",
+                    borderWidth: 5,
+                    borderRadius: 10,
                   }}>
                 </View>
               ));
@@ -386,6 +460,41 @@ export default function App() {
       </TouchableOpacity>);
     }
   }
+  let displayGameOver = (reRender) => {
+    if (reRender) {
+      setReRenderGameOver(false);
+    }
+    if (gameState == GFSM.GameOver) {
+      return (<View style={styles.GameOverMenu}>
+        <Text style={styles.GameOverText}>
+          Game Over!
+        </Text>
+        <Text style={styles.GameOverText}>
+          Score: {score}
+        </Text>
+        <Text style={styles.GameOverText}>
+          High Score: {score}
+        </Text>
+        <View style={styles.GameOverButtonRow}>
+          <TouchableOpacity
+            style={styles.GameOverButton}
+            onPress={onRestartPress}>
+            <Text style={styles.GameOverText}>
+              Restart
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.GameOverButton}
+            onPress={onRestartPress}>
+            <Text style={styles.GameOverText}>
+              Menu
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>);
+
+    }
+  }
   //#endregion
   //#region OnButtonPress functions
   let onPausePress = () => {
@@ -395,6 +504,14 @@ export default function App() {
   let onResumePress = () => {
     gameState = GFSM.Playing;
     setReRenderPause(true);
+  }
+  let onRestartPress = () => {
+    setReRenderGameOver(true);
+    RestartGame();
+  }
+  let onMainMenuPress = () => {
+    gameState = GFSM.StartMenu;
+    setReRenderGameOver(true);
   }
   //#endregion
   return (
@@ -414,6 +531,8 @@ export default function App() {
         </View>
         {/*Render Pause Button*/}
         {displayPauseResume(reRenderPause)}
+        {/*Render Game Over Menu */}
+        {displayGameOver(reRenderGameOver)}
       </View>
       <StatusBar hidden />
     </SafeAreaView>

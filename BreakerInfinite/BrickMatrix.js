@@ -92,4 +92,11 @@ export class BrickMatrix {
             temp = current;
         }
     }
+    Flush() {
+       this.bricks.forEach(row =>{
+        row.forEach(brick => {
+            brick.renders = false;
+        });
+       });
+    }
 }
