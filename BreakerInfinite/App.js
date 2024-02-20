@@ -136,7 +136,7 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       alignItems: 'flex-start',
 
     },
-    GameOverText: {
+    LargeText: {
       flex: 1,
       color: "#fff",
       fontSize: Math.round(width / 15),
@@ -211,10 +211,41 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       width: width * 0.8,
       top: height * 0.1,
       height: height * 0.8,
+      justifyContent: 'center',
+
+    },
+    SubMenuTitleBanner: {
+      flex: 1,
+      color: "#fff",
+      backgroundColor: "#4b5563",
+      textAlign: "center",
+      left: "-1%",
+      top: "-1%",
+      width:"102%",
+      height:"102%",
+      borderColor: "#d6d6d6",
+      borderRadius: 20,
+      borderWidth: 6,
+    },
+    SubMenuArea: {
+      flex: 10
+    },
+    BackButton: {
+      flex: 1,
+      backgroundColor: "#944b29",
+      color: "#fff",
+      borderColor: "#d6d6d6",
+      borderRadius: 20,
+      borderWidth: 6,
+      left: "-1%",
+      bottom: "-1%",
+      width:"102%",
+      height:"102%",
     }
   });
 }
 //#endregion
+//#region  global Vars
 let counter = 0;
 const brickMatrix = new BrickMatrix();
 var matrixHasInit = false;
@@ -224,6 +255,7 @@ var brickSpawnTime = 15000;
 var ballHasInit = false;
 var ball;
 var bricksAdding = false;
+//#endregion
 export default function App() {
   //screen dimensions
   const { width, height } = useWindowDimensions();
@@ -524,27 +556,27 @@ export default function App() {
     }
     if (gameState == GFSM.GameOver) {
       return (<View style={styles.GameOverMenu}>
-        <Text style={styles.GameOverText}>
+        <Text style={styles.LargeText}>
           Game Over!
         </Text>
-        <Text style={styles.GameOverText}>
+        <Text style={styles.LargeText}>
           Score: {score}
         </Text>
-        <Text style={styles.GameOverText}>
+        <Text style={styles.LargeText}>
           High Score: {score}
         </Text>
         <View style={styles.GameOverButtonRow}>
           <TouchableOpacity
             style={styles.GameOverButton}
             onPress={onRestartPress}>
-            <Text style={styles.GameOverText}>
+            <Text style={styles.LargeText}>
               Restart
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.GameOverButton}
             onPress={onMainMenuPress}>
-            <Text style={styles.GameOverText}>
+            <Text style={styles.LargeText}>
               Menu
             </Text>
           </TouchableOpacity>
@@ -597,9 +629,19 @@ export default function App() {
     if (gameState == GFSM.Settings) {
       return (
         <View style={styles.SubMenu}>
-          <Text>
-            SETTINGS
-          </Text>
+          <View style={styles.SubMenuTitleBanner}>
+            <Text style={styles.LargeText}>
+              Settings
+            </Text>
+          </View>
+          <View style={styles.SubMenuArea}>
+          </View>
+          <TouchableOpacity
+            style={styles.BackButton}
+            onPress={()=> {onBackPress(false)}}
+            activeOpacity={0.5}>
+            <Text style={styles.LargeText}>Back</Text>
+          </TouchableOpacity>
         </View>);
     }
   }
@@ -610,9 +652,19 @@ export default function App() {
     if (gameState == GFSM.Skins) {
       return (
         <View style={styles.SubMenu}>
-          <Text>
-            SKINS
-          </Text>
+          <View style={styles.SubMenuTitleBanner}>
+            <Text style={styles.LargeText}>
+              Skins
+            </Text>
+          </View>
+          <View style={styles.SubMenuArea}>
+          </View>
+          <TouchableOpacity
+            style={styles.BackButton}
+            onPress={()=> {onBackPress(false)}}
+            activeOpacity={0.5}>
+            <Text style={styles.LargeText}>Back</Text>
+          </TouchableOpacity>
         </View>);
     }
   }
@@ -652,6 +704,16 @@ export default function App() {
     gameState = GFSM.Skins;
     setReRenderMainMenu(true);
     setReRenderSkins(true);
+  }
+  let onBackPress = (fromSettings) => {
+    gameState = GFSM.MainMenu;
+    if(fromSettings){
+      setReRenderSettings(true);
+    }
+    else{
+      setReRenderSkins(true);
+    }
+    setReRenderMainMenu(true);
   }
   //#endregion
   return (
