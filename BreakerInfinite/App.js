@@ -30,7 +30,7 @@ const DELTA = 1000 / FPS; //time for 1 frame in ms
 
 //Pseudo-enum with all game states
 const GFSM = {
-  StartMenu: 0,
+  MainMenu: 0,
   GameStart: 1,
   Playing: 2,
   GameOver: 3,
@@ -38,7 +38,7 @@ const GFSM = {
   OptionsMenu: 5,
   SkinSelect: 6
 }
-var gameState = GFSM.GameStart;
+var gameState = GFSM.MainMenu;
 
 //#region Physics objects coefficients
 
@@ -161,21 +161,45 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     },
     MainMenu: {
       position: "absolute",
-      top: height / 2,
+      top: height * 0.4,
       left: width * 0.1,
-      height: height / 2,
+      height: height * 0.6,
       width: width * 0.8,
-      backgroundColor: "#fff",
       flexDirection: "row",
       alignItems: "center",
-      alignContent: "",
     },
-    MainMenuButtonSmall: {
-      flex:1,
-      alignSelf:'center'
+    MainMenuSettingsTO: {
+      position: 'absolute',
+      left: width * 0.1,
+      top: height * 0.6,
+
     },
-    MainMenuButtonBig:{
-      flex:2
+    MainMenuSettingsIMG: {
+      position: 'absolute',
+      width: width * 0.2,
+      height: width * 0.2
+    },
+    MainMenuPlayTO: {
+      position: 'absolute',
+      left: width * 0.3,
+      top: height * 0.4,
+
+    },
+    MainMenuPlayIMG: {
+      position: 'absolute',
+      width: width * 0.4,
+      height: width * 0.4
+    },
+    MainMenuSkinsTO: {
+      position: 'absolute',
+      right: width * 0.27,
+      top: height * 0.6,
+
+    },
+    MainMenuSkinsIMG: {
+      position: 'absolute',
+      width: width * 0.187,
+      height: width * 0.2
     },
   });
 }
@@ -212,6 +236,7 @@ export default function App() {
   const [reRenderScore, setReRenderScore] = useState(false);
   const [reRenderPause, setReRenderPause] = useState(false);
   const [reRenderGameOver, setReRenderGameOver] = useState(false);
+  const [reRenderMainMenu, setReRenderMainMenu] = useState(true);
   //#endregion
 
   //#region Starters & misc
@@ -505,7 +530,7 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.GameOverButton}
-            onPress={onRestartPress}>
+            onPress={onMainMenuPress}>
             <Text style={styles.GameOverText}>
               Menu
             </Text>
@@ -513,6 +538,43 @@ export default function App() {
         </View>
       </View>);
 
+    }
+  }
+  let displayMainMenu = (reRender) => {
+    if(reRender){
+      setReRenderMainMenu(false);
+    }
+    if (gameState == GFSM.MainMenu) {
+      let touchables = [];
+      touchables.push(
+        <TouchableOpacity 
+        key={"menuSettings"} 
+        style={styles.MainMenuSettingsTO} 
+        onPress={onSettingsPress}
+        activeOpacity={0.5}>
+          <Image
+            style={styles.MainMenuSettingsIMG}
+            source={require("./assets/cog.png")} />
+        </TouchableOpacity>);
+      touchables.push(<TouchableOpacity 
+      key={"menuPlay"} 
+      style={styles.MainMenuPlayTO} 
+      onPress={onPlayPress}
+      activeOpacity={0.5}>
+        <Image
+          style={styles.MainMenuPlayIMG}
+          source={require("./assets/play.png")} />
+      </TouchableOpacity>);
+      touchables.push(<TouchableOpacity 
+      key={"menuSkins"} 
+      style={styles.MainMenuSkinsTO} 
+      onPress={onSkinsPress}
+      activeOpacity={0.5}>
+        <Image
+          style={styles.MainMenuSkinsIMG}
+          source={require("./assets/shop.png")} />
+      </TouchableOpacity>);
+      return touchables;
     }
   }
   //#endregion
@@ -530,8 +592,23 @@ export default function App() {
     RestartGame();
   }
   let onMainMenuPress = () => {
-    gameState = GFSM.StartMenu;
+    gameState = GFSM.MainMenu;
     setReRenderGameOver(true);
+  }
+  let onPlayPress = () => {
+    if(bricksAdding){
+      RestartGame();
+    }
+    else{
+      gameState = GFSM.GameStart;
+    }
+    setReRenderMainMenu(true);
+  }
+  let onSettingsPress = () => {
+    setReRenderMainMenu(true);
+  }
+  let onSkinsPress = () => {
+    setReRenderMainMenu(true);
   }
   //#endregion
   return (
@@ -553,28 +630,9 @@ export default function App() {
         {displayPauseResume(reRenderPause)}
         {/*Render Game Over Menu */}
         {displayGameOver(reRenderGameOver)}
-        {/*Render Main Menu */}
-        <View style={styles.MainMenu}>
-          {/*Render Settings Button */}
-          <TouchableOpacity style={styles.MainMenuButtonSmall} activeOpacity={0.5}>
-            <Image
-              style={styles.pauseButtonIMG}
-              source={require("./assets/pause.png")} />
-          </TouchableOpacity>
-          {/*Render Play Button */}
-          <TouchableOpacity style={styles.MainMenuButtonBig} activeOpacity={0.5}>
-            <Image
-              style={styles.pauseButtonIMG}
-              source={require("./assets/pause.png")} />
-          </TouchableOpacity>
-          {/*Render Shop */}
-          <TouchableOpacity style={styles.MainMenuButtonSmall} activeOpacity={0.5}>
-            <Image
-              style={styles.pauseButtonIMG}
-              source={require("./assets/pause.png")} />
-          </TouchableOpacity>
+        {/*Render Main Menu Buttons */}
+        {displayMainMenu(reRenderMainMenu)}
 
-        </View>
       </View>
       <StatusBar hidden />
     </SafeAreaView>
