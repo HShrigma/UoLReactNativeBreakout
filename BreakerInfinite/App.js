@@ -158,7 +158,25 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       borderWidth: 5,
       borderColor: "#d6d6d6",
       borderRadius: 20,
-    }
+    },
+    MainMenu: {
+      position: "absolute",
+      top: height / 2,
+      left: width * 0.1,
+      height: height / 2,
+      width: width * 0.8,
+      backgroundColor: "#fff",
+      flexDirection: "row",
+      alignItems: "center",
+      alignContent: "",
+    },
+    MainMenuButtonSmall: {
+      flex:1,
+      alignSelf:'center'
+    },
+    MainMenuButtonBig:{
+      flex:2
+    },
   });
 }
 //#endregion
@@ -535,6 +553,28 @@ export default function App() {
         {displayPauseResume(reRenderPause)}
         {/*Render Game Over Menu */}
         {displayGameOver(reRenderGameOver)}
+        {/*Render Main Menu */}
+        <View style={styles.MainMenu}>
+          {/*Render Settings Button */}
+          <TouchableOpacity style={styles.MainMenuButtonSmall} activeOpacity={0.5}>
+            <Image
+              style={styles.pauseButtonIMG}
+              source={require("./assets/pause.png")} />
+          </TouchableOpacity>
+          {/*Render Play Button */}
+          <TouchableOpacity style={styles.MainMenuButtonBig} activeOpacity={0.5}>
+            <Image
+              style={styles.pauseButtonIMG}
+              source={require("./assets/pause.png")} />
+          </TouchableOpacity>
+          {/*Render Shop */}
+          <TouchableOpacity style={styles.MainMenuButtonSmall} activeOpacity={0.5}>
+            <Image
+              style={styles.pauseButtonIMG}
+              source={require("./assets/pause.png")} />
+          </TouchableOpacity>
+
+        </View>
       </View>
       <StatusBar hidden />
     </SafeAreaView>
