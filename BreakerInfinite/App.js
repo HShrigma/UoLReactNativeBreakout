@@ -79,14 +79,14 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       top: paddle.pos.y,
       left: paddle.pos.x,
     },
-    paddleInputArea: {
+    PaddleInputArea: {
       width: width,
       height: paddle.size.y * 10,
       position: 'absolute',
       top: paddle.pos.y - 200,
       left: 0
     },
-    ball: {
+    Ball: {
       width: ball.size.x,
       height: ball.size.y,
       backgroundColor: "#fff",
@@ -201,6 +201,17 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       width: width * 0.187,
       height: width * 0.2
     },
+    SubMenu: {
+      position: "absolute",
+      backgroundColor: "#4b5563",
+      borderColor: "#d6d6d6",
+      borderWidth: 5,
+      borderRadius: 20,
+      left: width * 0.1,
+      width: width * 0.8,
+      top: height * 0.1,
+      height: height * 0.8,
+    }
   });
 }
 //#endregion
@@ -237,6 +248,8 @@ export default function App() {
   const [reRenderPause, setReRenderPause] = useState(false);
   const [reRenderGameOver, setReRenderGameOver] = useState(false);
   const [reRenderMainMenu, setReRenderMainMenu] = useState(true);
+  const [reRenderSkins, setReRenderSkins] = useState(false);
+  const [reRenderSettings, setReRenderSettings] = useState(false);
   //#endregion
 
   //#region Starters & misc
@@ -541,40 +554,66 @@ export default function App() {
     }
   }
   let displayMainMenu = (reRender) => {
-    if(reRender){
+    if (reRender) {
       setReRenderMainMenu(false);
     }
     if (gameState == GFSM.MainMenu) {
       let touchables = [];
       touchables.push(
-        <TouchableOpacity 
-        key={"menuSettings"} 
-        style={styles.MainMenuSettingsTO} 
-        onPress={onSettingsPress}
-        activeOpacity={0.5}>
+        <TouchableOpacity
+          key={"menuSettings"}
+          style={styles.MainMenuSettingsTO}
+          onPress={onSettingsPress}
+          activeOpacity={0.5}>
           <Image
             style={styles.MainMenuSettingsIMG}
             source={require("./assets/cog.png")} />
         </TouchableOpacity>);
-      touchables.push(<TouchableOpacity 
-      key={"menuPlay"} 
-      style={styles.MainMenuPlayTO} 
-      onPress={onPlayPress}
-      activeOpacity={0.5}>
+      touchables.push(<TouchableOpacity
+        key={"menuPlay"}
+        style={styles.MainMenuPlayTO}
+        onPress={onPlayPress}
+        activeOpacity={0.5}>
         <Image
           style={styles.MainMenuPlayIMG}
           source={require("./assets/play.png")} />
       </TouchableOpacity>);
-      touchables.push(<TouchableOpacity 
-      key={"menuSkins"} 
-      style={styles.MainMenuSkinsTO} 
-      onPress={onSkinsPress}
-      activeOpacity={0.5}>
+      touchables.push(<TouchableOpacity
+        key={"menuSkins"}
+        style={styles.MainMenuSkinsTO}
+        onPress={onSkinsPress}
+        activeOpacity={0.5}>
         <Image
           style={styles.MainMenuSkinsIMG}
           source={require("./assets/shop.png")} />
       </TouchableOpacity>);
       return touchables;
+    }
+  }
+  let displaySettings = (reRender) => {
+    if (reRender) {
+      setReRenderSettings(false);
+    }
+    if (gameState == GFSM.Settings) {
+      return (
+        <View style={styles.SubMenu}>
+          <Text>
+            SETTINGS
+          </Text>
+        </View>);
+    }
+  }
+  let displaySkins = (reRender) => {
+    if (reRender) {
+      setReRenderSkins(false);
+    }
+    if (gameState == GFSM.Skins) {
+      return (
+        <View style={styles.SubMenu}>
+          <Text>
+            SKINS
+          </Text>
+        </View>);
     }
   }
   //#endregion
@@ -596,10 +635,10 @@ export default function App() {
     setReRenderGameOver(true);
   }
   let onPlayPress = () => {
-    if(bricksAdding){
+    if (bricksAdding) {
       RestartGame();
     }
-    else{
+    else {
       gameState = GFSM.GameStart;
     }
     setReRenderMainMenu(true);
@@ -607,10 +646,12 @@ export default function App() {
   let onSettingsPress = () => {
     gameState = GFSM.Settings;
     setReRenderMainMenu(true);
+    setReRenderSettings(true);
   }
   let onSkinsPress = () => {
     gameState = GFSM.Skins;
     setReRenderMainMenu(true);
+    setReRenderSkins(true);
   }
   //#endregion
   return (
@@ -622,9 +663,9 @@ export default function App() {
         {/*Draw Score over bricks so they don't cover it*/}
         {displayScore(reRenderScore)}
         {/*Ball Should be displayed over bricks and score */}
-        <Animated.View style={[styles.ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
+        <Animated.View style={[styles.Ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
         {/* Paddle is drawn above every other game object*/}
-        <Animated.View style={styles.paddleInputArea}{...panResponder.panHandlers}>
+        <Animated.View style={styles.PaddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
         <View style={styles.paddle}>
         </View>
@@ -634,7 +675,10 @@ export default function App() {
         {displayGameOver(reRenderGameOver)}
         {/*Render Main Menu Buttons */}
         {displayMainMenu(reRenderMainMenu)}
-
+        {/*Render Settings Menu */}
+        {displaySettings(reRenderSettings)}
+        {/*Render Skins Menu */}
+        {displaySkins(reRenderSkins)}
       </View>
       <StatusBar hidden />
     </SafeAreaView>
