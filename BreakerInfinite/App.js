@@ -34,7 +34,9 @@ const GFSM = {
   GameStart: 1,
   Playing: 2,
   GameOver: 3,
-  Paused: 4
+  Paused: 4,
+  OptionsMenu: 5,
+  SkinSelect: 6
 }
 var gameState = GFSM.GameStart;
 
