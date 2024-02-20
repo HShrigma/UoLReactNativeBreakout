@@ -22,12 +22,21 @@ import { Paddle } from './Paddle';
 import { Ball } from './Ball';
 import { Brick } from './Brick';
 import { BrickMatrix } from './BrickMatrix';
-
+import UserSettings from "./UserSettings.json"
 const title = "Breaker: Infinite";
 
 const FPS = 60;
 const DELTA = 1000 / FPS; //time for 1 frame in ms
 
+//Image paths
+const imgPathVibrationsOn =  "./assets/userSettings/vibration-on.png";
+const imgPathVibrationsOff = "./assets/userSettings/vibration-off.png";
+const imgPathPause = "./assets/pause.png";
+const imgPathPlay = "./assets/play.png";
+const imgPathCog = "./assets/cog.png";
+const imgPathShop = "./assets/shop.png";
+const imgPathVolOn = "./assets/userSettings/volume-on.png";
+const imgPathVolOff = "./assets/userSettings/volume-off.png";
 //Pseudo-enum with all game states
 const GFSM = {
   MainMenu: 0,
@@ -212,7 +221,6 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       top: height * 0.1,
       height: height * 0.8,
       justifyContent: 'center',
-
     },
     SubMenuTitleBanner: {
       flex: 1,
@@ -221,14 +229,11 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       textAlign: "center",
       left: "-1%",
       top: "-1%",
-      width:"102%",
-      height:"102%",
+      width: "102%",
+      height: "102%",
       borderColor: "#d6d6d6",
       borderRadius: 20,
       borderWidth: 6,
-    },
-    SubMenuArea: {
-      flex: 10
     },
     BackButton: {
       flex: 1,
@@ -239,9 +244,45 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       borderWidth: 6,
       left: "-1%",
       bottom: "-1%",
-      width:"102%",
-      height:"102%",
-    }
+      width: "102%",
+      height: "102%",
+    },
+    SubMenuArea: {
+      flex: 10,
+      alignItems: "center",
+      flexDirection:"row",
+    },
+
+    SettingsBox: {
+      flex: 1,
+      backgroundColor: "#d6d6d6",
+      borderColor: "#944b29",
+      borderRadius: 20,
+      borderWidth: 6,
+      marginHorizontal: "1%"
+    },
+    SettingsBoxIMG:{
+      alignSelf:"center",
+      width: width*0.122,
+      height: width*0.1,
+      top: "-2%",
+    },
+    SettingsBoxIMGAlt:{
+      alignSelf:"center",
+      width: width*0.1,
+      height: width*0.1,
+      top: "-2%",
+    },
+    SettingsBoxLabel: {
+      top: "-5%",
+      textAlign: "center",
+      fontSize: Math.round(width /25),
+      alignSelf: 'center',
+      textAlignVertical: 'center',
+      fontWeight: '500',
+      letterSpacing: 1.5,
+      color: "#fff",
+    },
   });
 }
 //#endregion
@@ -264,7 +305,6 @@ export default function App() {
     x: width / 2 + (width * ballSizeCoeff),
     y: height - (height * paddleSizeYCoeff * 2) - (height * ballSizeCoeff)
   };
-
   //#region States
   //PaddleX data as it will vary by moving it
   const [paddleX, setPaddleX] = useState(initPaddleX);
@@ -282,6 +322,11 @@ export default function App() {
   const [reRenderMainMenu, setReRenderMainMenu] = useState(true);
   const [reRenderSkins, setReRenderSkins] = useState(false);
   const [reRenderSettings, setReRenderSettings] = useState(false);
+  //User Settings State
+  //Soundeffects
+  const [soundOn,setSoundOn] = useState(UserSettings.Sound);
+  const [musicOn,setMusicOn] = useState(UserSettings.Music);
+  const [vibrationsOn,setVibrationsOn] = useState(UserSettings.Vibrations);
   //#endregion
 
   //#region Starters & misc
@@ -539,14 +584,14 @@ export default function App() {
       return (<TouchableOpacity style={styles.pauseButtonTO} onPress={onPausePress} activeOpacity={0.5}>
         <Image
           style={styles.pauseButtonIMG}
-          source={require("./assets/pause.png")} />
+          source={require(imgPathPause)} />
       </TouchableOpacity>);
     }
     if (gameState == GFSM.Paused) {
       return (<TouchableOpacity style={styles.resumeButtonTO} onPress={onResumePress} activeOpacity={0.5}>
         <Image
           style={styles.resumeButtonIMG}
-          source={require("./assets/play.png")} />
+          source={require(imgPathPlay)} />
       </TouchableOpacity>);
     }
   }
@@ -599,7 +644,7 @@ export default function App() {
           activeOpacity={0.5}>
           <Image
             style={styles.MainMenuSettingsIMG}
-            source={require("./assets/cog.png")} />
+            source={require(imgPathCog)} />
         </TouchableOpacity>);
       touchables.push(<TouchableOpacity
         key={"menuPlay"}
@@ -608,7 +653,7 @@ export default function App() {
         activeOpacity={0.5}>
         <Image
           style={styles.MainMenuPlayIMG}
-          source={require("./assets/play.png")} />
+          source={require(imgPathPlay)} />
       </TouchableOpacity>);
       touchables.push(<TouchableOpacity
         key={"menuSkins"}
@@ -617,7 +662,7 @@ export default function App() {
         activeOpacity={0.5}>
         <Image
           style={styles.MainMenuSkinsIMG}
-          source={require("./assets/shop.png")} />
+          source={require(imgPathShop)} />
       </TouchableOpacity>);
       return touchables;
     }
@@ -627,6 +672,26 @@ export default function App() {
       setReRenderSettings(false);
     }
     if (gameState == GFSM.Settings) {
+      //logic for sound,music,vibrations user settings
+      let vibrationButton = ()=>{
+        UserSettings.Vibrations = vibrationsOn;
+        if(vibrationsOn){
+          return (<Image style = {styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOn)}/>);
+        }
+        return(<Image style = {styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOff)}/>);
+      };
+      let musicButton = ()=>{
+        if(musicOn){
+          return (<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOn)}/>);
+        }
+        return(<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOff)}/>);
+      };
+      let soundButton = ()=>{
+        if(soundOn){
+          return (<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOn)}/>);
+        }
+        return(<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOff)}/>);
+      };
       return (
         <View style={styles.SubMenu}>
           <View style={styles.SubMenuTitleBanner}>
@@ -635,10 +700,31 @@ export default function App() {
             </Text>
           </View>
           <View style={styles.SubMenuArea}>
+            <TouchableOpacity 
+            style={styles.SettingsBox}
+            onPress={onToggleMusicPress}
+            activeOpacity={0.5}>
+              <Text style={styles.SettingsBoxLabel}>Music</Text>
+              {musicButton()}
+            </TouchableOpacity>
+            <TouchableOpacity 
+            style={styles.SettingsBox}
+            onPress={onToggleSoundPress}
+            activeOpacity={0.5}>
+              <Text style={styles.SettingsBoxLabel}>Sound</Text>
+              {soundButton()}
+            </TouchableOpacity>
+            <TouchableOpacity 
+            style={styles.SettingsBox}
+            onPress={onToggleVibrationsPress}
+            activeOpacity={0.5}>
+              <Text style={styles.SettingsBoxLabel}>Vibration</Text>
+              {vibrationButton()}
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.BackButton}
-            onPress={()=> {onBackPress(false)}}
+            onPress={() => { onBackPress(false) }}
             activeOpacity={0.5}>
             <Text style={styles.LargeText}>Back</Text>
           </TouchableOpacity>
@@ -661,7 +747,7 @@ export default function App() {
           </View>
           <TouchableOpacity
             style={styles.BackButton}
-            onPress={()=> {onBackPress(false)}}
+            onPress={() => { onBackPress(false) }}
             activeOpacity={0.5}>
             <Text style={styles.LargeText}>Back</Text>
           </TouchableOpacity>
@@ -707,14 +793,29 @@ export default function App() {
   }
   let onBackPress = (fromSettings) => {
     gameState = GFSM.MainMenu;
-    if(fromSettings){
+    if (fromSettings) {
       setReRenderSettings(true);
     }
-    else{
+    else {
       setReRenderSkins(true);
     }
     setReRenderMainMenu(true);
   }
+
+  let onToggleSoundPress = () => {
+    setSoundOn(!soundOn);
+    setReRenderSettings(true);
+  }
+  let onToggleMusicPress = () => {
+    setMusicOn(!musicOn);
+    setReRenderSettings(true);
+  }
+  let onToggleVibrationsPress = () => {
+    setVibrationsOn(!vibrationsOn);
+    setReRenderSettings(true);
+  }
+
+
   //#endregion
   return (
     <SafeAreaView>
