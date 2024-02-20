@@ -35,8 +35,8 @@ const GFSM = {
   Playing: 2,
   GameOver: 3,
   Paused: 4,
-  OptionsMenu: 5,
-  SkinSelect: 6
+  Settings: 5,
+  Skins: 6
 }
 var gameState = GFSM.MainMenu;
 
@@ -605,9 +605,11 @@ export default function App() {
     setReRenderMainMenu(true);
   }
   let onSettingsPress = () => {
+    gameState = GFSM.Settings;
     setReRenderMainMenu(true);
   }
   let onSkinsPress = () => {
+    gameState = GFSM.Skins;
     setReRenderMainMenu(true);
   }
   //#endregion
