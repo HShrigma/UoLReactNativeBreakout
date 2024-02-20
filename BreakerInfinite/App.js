@@ -331,12 +331,17 @@ export default function App() {
   const [reRenderSkins, setReRenderSkins] = useState(false);
   const [reRenderSettings, setReRenderSettings] = useState(false);
   //User Settings State
-  //Soundeffects
   const [soundOn, setSoundOn] = useState("");
   const [musicOn, setMusicOn] = useState("");
   const [vibrationsOn, setVibrationsOn] = useState("");
+  //User High Score
+  const [highScore, setHighScore] = useState("");
   //#endregion
   //#region Async Storage
+  let SaveHighScore = async (value) => {
+    await AsyncStorage.setItem("@UserScore",value);
+    setHighScore(value);
+  }
   let SaveMusic = async (value) => {
     await AsyncStorage.setItem("@UserMusic", value);
     setMusicOn(value);
@@ -351,6 +356,18 @@ export default function App() {
     await AsyncStorage.setItem("@UserVibrations", value);
     setVibrationsOn(value);
     userSettings.vibrations = value;
+  }
+  let GetHighScore = async () => {
+    let value = await AsyncStorage.getItem("@UserScore").catch((err) => { console.log("error getting score: " + err) })
+    if (value == null) {
+      // console.log("null");
+      await SaveHighScore(score.toString());
+      value = score.toString();
+    }
+    else {
+      // console.log("got score:" + value);
+    }
+    return value;
   }
   let GetMusic = async () => {
     let value = await AsyncStorage.getItem("@UserMusic").catch((err) => { console.log("error getting music: " + err) })
@@ -400,6 +417,8 @@ export default function App() {
   }
   //init values
   let initUserSettings = async () => {
+      let hScore = await GetHighScore();
+      setHighScore(hScore);
       let music = await GetMusic();
       setMusicOn(music);
       let sound = await GetSound();
@@ -688,6 +707,10 @@ export default function App() {
   let displayGameOver = (reRender) => {
     if (reRender) {
       setReRenderGameOver(false);
+      if(score > Number(highScore)){
+        setHighScore(score.toString());
+        SaveHighScore(score.toString());
+      }
     }
     if (gameState == GFSM.GameOver) {
       return (<View style={styles.GameOverMenu}>
@@ -698,7 +721,7 @@ export default function App() {
           Score: {score}
         </Text>
         <Text style={styles.LargeText}>
-          High Score: {score}
+          High Score: {highScore}
         </Text>
         <View style={styles.GameOverButtonRow}>
           <TouchableOpacity
