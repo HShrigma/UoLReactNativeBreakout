@@ -4,7 +4,6 @@
 // https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
 import { StatusBar } from 'expo-status-bar';
 import {
-  Button,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -17,19 +16,20 @@ import {
 } from 'react-native';
 
 import { useState, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 import { Paddle } from './Paddle';
 import { Ball } from './Ball';
 import { Brick } from './Brick';
 import { BrickMatrix } from './BrickMatrix';
-import UserSettings from "./UserSettings.json"
 const title = "Breaker: Infinite";
 
 const FPS = 60;
 const DELTA = 1000 / FPS; //time for 1 frame in ms
 
 //Image paths
-const imgPathVibrationsOn =  "./assets/userSettings/vibration-on.png";
+const imgPathVibrationsOn = "./assets/userSettings/vibration-on.png";
 const imgPathVibrationsOff = "./assets/userSettings/vibration-off.png";
 const imgPathPause = "./assets/pause.png";
 const imgPathPlay = "./assets/play.png";
@@ -250,7 +250,7 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     SubMenuArea: {
       flex: 10,
       alignItems: "center",
-      flexDirection:"row",
+      flexDirection: "row",
     },
 
     SettingsBox: {
@@ -261,22 +261,22 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       borderWidth: 6,
       marginHorizontal: "1%"
     },
-    SettingsBoxIMG:{
-      alignSelf:"center",
-      width: width*0.122,
-      height: width*0.1,
+    SettingsBoxIMG: {
+      alignSelf: "center",
+      width: width * 0.122,
+      height: width * 0.1,
       top: "-2%",
     },
-    SettingsBoxIMGAlt:{
-      alignSelf:"center",
-      width: width*0.1,
-      height: width*0.1,
+    SettingsBoxIMGAlt: {
+      alignSelf: "center",
+      width: width * 0.1,
+      height: width * 0.1,
       top: "-2%",
     },
     SettingsBoxLabel: {
       top: "-5%",
       textAlign: "center",
-      fontSize: Math.round(width /25),
+      fontSize: Math.round(width / 25),
       alignSelf: 'center',
       textAlignVertical: 'center',
       fontWeight: '500',
@@ -296,6 +296,13 @@ var brickSpawnTime = 15000;
 var ballHasInit = false;
 var ball;
 var bricksAdding = false;
+
+var userSettings = {
+  music: "",
+  sound: "",
+  vibrations: ""
+}
+
 //#endregion
 export default function App() {
   //screen dimensions
@@ -324,11 +331,87 @@ export default function App() {
   const [reRenderSettings, setReRenderSettings] = useState(false);
   //User Settings State
   //Soundeffects
-  const [soundOn,setSoundOn] = useState(UserSettings.Sound);
-  const [musicOn,setMusicOn] = useState(UserSettings.Music);
-  const [vibrationsOn,setVibrationsOn] = useState(UserSettings.Vibrations);
+  const [soundOn, setSoundOn] = useState("");
+  const [musicOn, setMusicOn] = useState("");
+  const [vibrationsOn, setVibrationsOn] = useState("");
   //#endregion
+  //#region Async Storage
+  let SaveMusic = async (value) => {
+    await AsyncStorage.setItem("@UserMusic", value);
+    setMusicOn(value);
+    userSettings.music = value;
+  }
+  let SaveSound = async (value) => {
+    await AsyncStorage.setItem("@UserSound", value);
+    setSoundOn(value);
+    userSettings.sound = value;
+  }
+  let SaveVibrations = async (value) => {
+    await AsyncStorage.setItem("@UserVibrations", value);
+    setVibrationsOn(value);
+    userSettings.vibrations = value;
+  }
+  let GetMusic = async () => {
+    let value = await AsyncStorage.getItem("@UserMusic").catch((err) => { console.log("error getting music: " + err) })
+    if (value == null) {
+      // console.log("null");
+      await SaveMusic("true");
+      value = "true";
+    }
+    else {
+      // console.log("got music:" + value);
+    }
+    return value;
+  }
+  let GetSound = async () => {
+    let value = await AsyncStorage.getItem("@UserSound").catch((err) => { console.log("error getting sound: " + err) })
+    if (value == null) {
+      // console.log("null");
+      await SaveSound("true");
+      value = "true";
+    }
+    else {
+      // console.log("got sound:" + value);
+    }
+    return value;
+  }
+  let GetVibration = async () => {
+    let value = await AsyncStorage.getItem("@UserVibrations").catch((err) => { console.log("error getting vibs: " + err) })
+    if (value == null) {
+      // console.log("null");
+      await SaveVibrations("true");
+      value = "true";
+    }
+    else {
+      // console.log("got vibrations:" + value);
+    }
+    return value;
+  }
+  getAllKeys = async () => {
+    let keys = []
+    try {
+      keys = await AsyncStorage.getAllKeys()
+    } catch (e) {
+      // read key error
+    }
 
+    console.log(keys);
+  }
+  //init values
+  let initUserSettings = async () => {
+      let music = await GetMusic();
+      setMusicOn(music);
+      let sound = await GetSound();
+      setSoundOn(sound);
+      let vibs = await GetVibration();
+      setVibrationsOn(vibs);
+      userSettings.music = music;
+      userSettings.sound = sound;
+      userSettings.vibrations = vibs;
+  }
+
+
+  //#endregion
   //#region Starters & misc
   //starter stats for paddle
   const paddleStats = {
@@ -389,13 +472,18 @@ export default function App() {
 
   //#endregion
   //#region Physics & Game Functions
-  function OnBricksHit(i, j) {
+  async function OnBricksHit(i, j) {
     brickMatrix.bricks[i][j].renders = false;
     setReRenderBricks(true);
     ball.UpdateBrickColliders(brickMatrix.bricks);
     score += 5;
     setReRenderScore(true);
-    Vibration.vibrate(100);
+    if(userSettings.vibrations != "true" && userSettings.vibrations != "false"){
+      await initUserSettings();
+    }
+    if (userSettings.vibrations == "true") {
+      Vibration.vibrate(100);
+    }
   }
   async function TryAddBricks() {
     bricksAdding = true;
@@ -632,6 +720,7 @@ export default function App() {
   }
   let displayMainMenu = (reRender) => {
     if (reRender) {
+      initUserSettings();
       setReRenderMainMenu(false);
     }
     if (gameState == GFSM.MainMenu) {
@@ -670,27 +759,30 @@ export default function App() {
   let displaySettings = (reRender) => {
     if (reRender) {
       setReRenderSettings(false);
+      initUserSettings();
     }
     if (gameState == GFSM.Settings) {
       //logic for sound,music,vibrations user settings
-      let vibrationButton = ()=>{
-        UserSettings.Vibrations = vibrationsOn;
-        if(vibrationsOn){
-          return (<Image style = {styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOn)}/>);
+      let vibrationButton = () => {
+        console.log("vibrationsOn: " + vibrationsOn);
+        if (vibrationsOn == "true") {
+          return (<Image style={styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOn)} />);
         }
-        return(<Image style = {styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOff)}/>);
+        return (<Image style={styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOff)} />);
       };
-      let musicButton = ()=>{
-        if(musicOn){
-          return (<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOn)}/>);
+      let musicButton = () => {
+        console.log("musicOn: " + musicOn);
+        if (musicOn == "true") {
+          return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOn)} />);
         }
-        return(<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOff)}/>);
+        return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOff)} />);
       };
-      let soundButton = ()=>{
-        if(soundOn){
-          return (<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOn)}/>);
+      let soundButton = () => {
+        console.log("soundOn: " + soundOn);
+        if (soundOn == "true") {
+          return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOn)} />);
         }
-        return(<Image style = {styles.SettingsBoxIMG} source={require(imgPathVolOff)}/>);
+        return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOff)} />);
       };
       return (
         <View style={styles.SubMenu}>
@@ -700,24 +792,24 @@ export default function App() {
             </Text>
           </View>
           <View style={styles.SubMenuArea}>
-            <TouchableOpacity 
-            style={styles.SettingsBox}
-            onPress={onToggleMusicPress}
-            activeOpacity={0.5}>
+            <TouchableOpacity
+              style={styles.SettingsBox}
+              onPress={onToggleMusicPress}
+              activeOpacity={0.5}>
               <Text style={styles.SettingsBoxLabel}>Music</Text>
               {musicButton()}
             </TouchableOpacity>
-            <TouchableOpacity 
-            style={styles.SettingsBox}
-            onPress={onToggleSoundPress}
-            activeOpacity={0.5}>
+            <TouchableOpacity
+              style={styles.SettingsBox}
+              onPress={onToggleSoundPress}
+              activeOpacity={0.5}>
               <Text style={styles.SettingsBoxLabel}>Sound</Text>
               {soundButton()}
             </TouchableOpacity>
-            <TouchableOpacity 
-            style={styles.SettingsBox}
-            onPress={onToggleVibrationsPress}
-            activeOpacity={0.5}>
+            <TouchableOpacity
+              style={styles.SettingsBox}
+              onPress={onToggleVibrationsPress}
+              activeOpacity={0.5}>
               <Text style={styles.SettingsBoxLabel}>Vibration</Text>
               {vibrationButton()}
             </TouchableOpacity>
@@ -803,15 +895,30 @@ export default function App() {
   }
 
   let onToggleSoundPress = () => {
-    setSoundOn(!soundOn);
+    if (soundOn == "true") {
+      SaveSound("false");
+    }
+    else {
+      SaveSound("true");
+    }
     setReRenderSettings(true);
   }
   let onToggleMusicPress = () => {
-    setMusicOn(!musicOn);
+    if (musicOn == "true") {
+      SaveMusic("false");
+    }
+    else {
+      SaveMusic("true");
+    }
     setReRenderSettings(true);
   }
   let onToggleVibrationsPress = () => {
-    setVibrationsOn(!vibrationsOn);
+    if (vibrationsOn == "true") {
+      SaveVibrations("false");
+    }
+    else {
+      SaveVibrations("true");
+    }
     setReRenderSettings(true);
   }
 
