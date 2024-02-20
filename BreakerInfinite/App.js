@@ -16,7 +16,10 @@ import {
 } from 'react-native';
 
 import { useState, useRef } from 'react';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from 'expo-av';
+
 
 
 import { Paddle } from './Paddle';
@@ -764,21 +767,18 @@ export default function App() {
     if (gameState == GFSM.Settings) {
       //logic for sound,music,vibrations user settings
       let vibrationButton = () => {
-        console.log("vibrationsOn: " + vibrationsOn);
         if (vibrationsOn == "true") {
           return (<Image style={styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOn)} />);
         }
         return (<Image style={styles.SettingsBoxIMGAlt} source={require(imgPathVibrationsOff)} />);
       };
       let musicButton = () => {
-        console.log("musicOn: " + musicOn);
         if (musicOn == "true") {
           return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOn)} />);
         }
         return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOff)} />);
       };
       let soundButton = () => {
-        console.log("soundOn: " + soundOn);
         if (soundOn == "true") {
           return (<Image style={styles.SettingsBoxIMG} source={require(imgPathVolOn)} />);
         }
