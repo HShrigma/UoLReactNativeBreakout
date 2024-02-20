@@ -12,13 +12,12 @@ import {
   PanResponder,
   useWindowDimensions,
   TouchableOpacity, Image,
-  Vibration
+  Vibration,
 } from 'react-native';
 
 import { useState, useRef } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Audio } from 'expo-av';
 
 
 
@@ -51,7 +50,6 @@ const GFSM = {
   Skins: 6
 }
 var gameState = GFSM.MainMenu;
-
 //#region Physics objects coefficients
 
 //all coeffs are multipliers applied to screenwidth/height
@@ -473,6 +471,7 @@ export default function App() {
     matrixHasInit = true;
   }
 
+  //#endregion
   //#endregion
   //#region Physics & Game Functions
   async function OnBricksHit(i, j) {
