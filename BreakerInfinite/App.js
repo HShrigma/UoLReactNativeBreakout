@@ -41,6 +41,7 @@ const imgPathCog = "./assets/cog.png";
 const imgPathShop = "./assets/shop.png";
 const imgPathVolOn = "./assets/userSettings/volume-on.png";
 const imgPathVolOff = "./assets/userSettings/volume-off.png";
+const imgPathLock = "./assets/lock.png";
 //Pseudo-enum with all game states
 const GFSM = {
   MainMenu: 0,
@@ -293,6 +294,7 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     SkinsContainer: {
       flex: 1,
       margin: "5%",
+      padding: "1%",
       width: "90%",
       borderColor: "#d6d6d6",
       borderWidth: 5,
@@ -308,6 +310,44 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       letterSpacing: 1.5,
       color: "#fff",
     },
+    SkinsItem: {
+      flex: 1,
+      margin: width * 0.01,
+      width: width * 0.5,
+      alignContent: "center",
+      verticalAlign: "middle",
+      borderRadius: 20,
+    },
+    SkinsItemText: {
+      flex: 1,
+      color: "#000",
+      fontSize: Math.round(width / 15),
+      alignSelf: 'center',
+      textAlignVertical: 'center',
+      fontWeight: '500',
+      letterSpacing: 1.5
+    },
+    SkinsItemLockIMG: {
+      position: "absolute",
+      width: width * 0.1,
+      height: width * 0.11,
+      top: "1%",
+      left: "2%",
+      opacity: 1,
+
+    },
+    SelectSkin: {
+      flex: 1,
+      width: "100%",
+      backgroundColor: "#944b29",
+      height: "4%",
+      borderRadius: 20,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      borderWidth: 5,
+      borderColor: "#d6d6d6",
+    },
+
   });
 }
 //#endregion
@@ -368,54 +408,64 @@ export default function App() {
     {
       name: "Default",
       color: "#fff",
-      unlocked: "true"
+      unlocked: "true",
+      selected: "true"
     },
     {
       name: "Crimson",
       color: "#dc143c",
-      unlocked: "false"
+      unlocked: "true",
+      selected: "false"
     },
     {
       name: "Slate Blue",
       color: "#6a5acd",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     },
     {
       name: "Olive",
       color: "#808000",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     },
     {
       name: "Gold",
       color: "#ffd700",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     }
   ]);
   const [ballSkinsStats, setBallSkinsStats] = useState([
     {
       name: "Default",
       color: "#fff",
-      unlocked: "true"
+      unlocked: "true",
+      selected: "true"
     },
     {
       name: "Crimson",
       color: "#dc143c",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     },
     {
       name: "Slate Blue",
       color: "#6a5acd",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     },
     {
       name: "Olive",
       color: "#808000",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     },
     {
       name: "Gold",
       color: "#ffd700",
-      unlocked: "false"
+      unlocked: "false",
+      selected: "false"
     }
   ]);
   const [brickSkinsStats, setBrickSkinsStats] = useState([
@@ -1015,17 +1065,43 @@ export default function App() {
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Paddle Skins</Text>
               <FlatList
+                horizontal
                 data={paddleSkinsStats}
                 renderItem={({ item }) => {
                   if (item.unlocked == "true") {
+                    if (item.selected == "true") {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <View style={[styles.SelectSkin,{backgroundColor: "#ffd700"}]}>
+                            <Text style={styles.LargeText}>Selected</Text>
+                          </View>
+                        </View>
+                      );
+
+                    }
+                    else {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <TouchableOpacity style={styles.SelectSkin}>
+                            <Text style={styles.LargeText}>Select</Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+
+                    }
+                  }
+                  else {
                     return (
-                      <View style={
-                        {
-                          flex: 1,
-                          backgroundColor: "#fff",
-                        }}>
-                          
+                      <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                        <Text style={styles.SkinsItemText}>{item.name}</Text>
+                        <TouchableOpacity style={[styles.SelectSkin,{backgroundColor:"#D5D8DC",borderColor:"#fff"}]}>
+                          <Text style={styles.LargeText}>Unlock</Text>
+                        </TouchableOpacity>
+                        <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
                       </View>
+
                     );
                   }
                 }}
