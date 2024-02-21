@@ -180,6 +180,17 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       flexDirection: "row",
       alignItems: "center",
     },
+    MainMenuTitle: {
+      color: "#4b5563",
+      position: "absolute",
+      top: -height * 0.5,
+      textAlign: "center",
+      fontSize: Math.round(width *0.11),
+      alignSelf: 'center',
+      textAlignVertical: 'center',
+      fontWeight: '800',
+      letterSpacing: 1.5
+    },
     MainMenuSettingsTO: {
       position: 'absolute',
       left: width * 0.1,
@@ -663,7 +674,7 @@ export default function App() {
     await UpdatePaddleSkinStats();
     await UpdateBallSkinStats();
     await UpdateBrickSkinStats();
-    await GetAllKeys();
+    // await GetAllKeys();
   }
 
   let UpdatePaddleSkinStats = async () => {
@@ -1129,6 +1140,9 @@ export default function App() {
     }
     if (gameState == GFSM.MainMenu) {
       let touchables = [];
+      touchables.push(<View key={"title"}>
+        <Text style={styles.MainMenuTitle}>{title}</Text>
+      </View>)
       touchables.push(
         <TouchableOpacity
           key={"menuSettings"}
@@ -1310,9 +1324,9 @@ export default function App() {
                       return (
                         <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                           <Text style={styles.SkinsItemText}>{item.name}</Text>
-                          <TouchableOpacity 
-                          onPress={()=>{onSelectSkinBall(item.name)}}
-                          style={styles.SelectSkin}>
+                          <TouchableOpacity
+                            onPress={() => { onSelectSkinBall(item.name) }}
+                            style={styles.SelectSkin}>
                             <Text style={styles.LargeText}>Select</Text>
                           </TouchableOpacity>
                         </View>
@@ -1324,9 +1338,9 @@ export default function App() {
                     return (
                       <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                         <Text style={styles.SkinsItemText}>{item.name}</Text>
-                        <TouchableOpacity 
-                        onPress={()=>{onUnlockSkinBall(item.name)}}
-                        style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
+                        <TouchableOpacity
+                          onPress={() => { onUnlockSkinBall(item.name) }}
+                          style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
                           <Text style={styles.LargeText}>$Unlock</Text>
                         </TouchableOpacity>
                         <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
@@ -1359,9 +1373,9 @@ export default function App() {
                       return (
                         <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                           <Text style={styles.SkinsItemText}>{item.name}</Text>
-                          <TouchableOpacity 
-                          onPress={()=>{onSelectSkinBrick(item.name)}}
-                          style={styles.SelectSkin}>
+                          <TouchableOpacity
+                            onPress={() => { onSelectSkinBrick(item.name) }}
+                            style={styles.SelectSkin}>
                             <Text style={styles.LargeText}>Select</Text>
                           </TouchableOpacity>
                         </View>
@@ -1373,9 +1387,9 @@ export default function App() {
                     return (
                       <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                         <Text style={styles.SkinsItemText}>{item.name}</Text>
-                        <TouchableOpacity 
-                        onPress={()=>{onUnlockSkinBrick(item.name)}}
-                        style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
+                        <TouchableOpacity
+                          onPress={() => { onUnlockSkinBrick(item.name) }}
+                          style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
                           <Text style={styles.LargeText}>$Unlock</Text>
                         </TouchableOpacity>
                         <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
