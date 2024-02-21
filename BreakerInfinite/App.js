@@ -26,6 +26,7 @@ import { Paddle } from './Paddle';
 import { Ball } from './Ball';
 import { Brick } from './Brick';
 import { BrickMatrix } from './BrickMatrix';
+import SkinList from "./SkinsList.json";
 const title = "Breaker: Infinite";
 
 const FPS = 60;
@@ -359,8 +360,112 @@ export default function App() {
   const [vibrationsOn, setVibrationsOn] = useState("");
   //User High Score
   const [highScore, setHighScore] = useState("");
+  //User Skin
+  const [paddleSkin, setPaddleSkin] = useState("");
+  const [ballSkin, setBallSkin] = useState("");
+  const [brickSkin, setBrickSkin] = useState("");
+  const [paddleSkinsStats, setPaddleSkinsStats] = useState([
+    {
+      name: "Default",
+      color: "#fff",
+      unlocked: "true"
+    },
+    {
+      name: "Crimson",
+      color: "#dc143c",
+      unlocked: "false"
+    },
+    {
+      name: "Slate Blue",
+      color: "#6a5acd",
+      unlocked: "false"
+    },
+    {
+      name: "Olive",
+      color: "#808000",
+      unlocked: "false"
+    },
+    {
+      name: "Gold",
+      color: "#ffd700",
+      unlocked: "false"
+    }
+  ]);
+  const [ballSkinsStats, setBallSkinsStats] = useState([
+    {
+      name: "Default",
+      color: "#fff",
+      unlocked: "true"
+    },
+    {
+      name: "Crimson",
+      color: "#dc143c",
+      unlocked: "false"
+    },
+    {
+      name: "Slate Blue",
+      color: "#6a5acd",
+      unlocked: "false"
+    },
+    {
+      name: "Olive",
+      color: "#808000",
+      unlocked: "false"
+    },
+    {
+      name: "Gold",
+      color: "#ffd700",
+      unlocked: "false"
+    }
+  ]);
+  const [brickSkinsStats, setBrickSkinsStats] = useState([
+    {
+      name: "Default",
+      color: "#fff",
+      unlocked: "true"
+    },
+    {
+      name: "Crimson",
+      color: "#dc143c",
+      unlocked: "false"
+    },
+    {
+      name: "Slate Blue",
+      color: "#6a5acd",
+      unlocked: "false"
+    },
+    {
+      name: "Olive",
+      color: "#808000",
+      unlocked: "false"
+    },
+    {
+      name: "Gold",
+      color: "#ffd700",
+      unlocked: "false"
+    }
+  ]);
+
   //#endregion
   //#region Async Storage
+  let SavePaddleSkin = async (value) => {
+
+  }
+  let SavePaddleSkinsStatuses = async (value) => {
+
+  }
+  let SaveBallSkin = async (value) => {
+
+  }
+  let SaveBallSkinsStatuses = async (value) => {
+
+  }
+  let SaveBrickSkin = async (value) => {
+
+  }
+  let SaveBrickSkinStatuses = async (value) => {
+
+  }
   let SaveHighScore = async (value) => {
     await AsyncStorage.setItem("@UserScore", value);
     setHighScore(value);
@@ -380,6 +485,26 @@ export default function App() {
     setVibrationsOn(value);
     userSettings.vibrations = value;
   }
+
+  let GetPaddleSkin = async (value) => {
+
+  }
+  let GetPaddleSkinsStatuses = async (skinName) => {
+
+  }
+  let GetBallSkin = async (skinName) => {
+
+  }
+  let GetBallSkinStatuses = async (skinName) => {
+
+  }
+  let GetBrickSkin = async (value) => {
+
+  }
+  let GetBrickSkinStatuses = async (value) => {
+
+  }
+
   let GetHighScore = async () => {
     let value = await AsyncStorage.getItem("@UserScore").catch((err) => { console.log("error getting score: " + err) })
     if (value == null) {
@@ -452,7 +577,11 @@ export default function App() {
     userSettings.sound = sound;
     userSettings.vibrations = vibs;
   }
+  let initUserSkins = async () => {
+    ballSkinsStats.forEach(skin => {
 
+    })
+  }
 
   //#endregion
   //#region Starters & misc
@@ -767,7 +896,9 @@ export default function App() {
   }
   let displayMainMenu = (reRender) => {
     if (reRender) {
-      initUserSettings();
+      if (musicOn == "" || soundOn == "" || vibrationsOn == "") {
+        initUserSettings();
+      }
       setReRenderMainMenu(false);
     }
     if (gameState == GFSM.MainMenu) {
@@ -870,6 +1001,7 @@ export default function App() {
   let displaySkins = (reRender) => {
     if (reRender) {
       setReRenderSkins(false);
+      initUserSkins();
     }
     if (gameState == GFSM.Skins) {
       return (
@@ -882,7 +1014,22 @@ export default function App() {
           <View style={styles.SubMenuAreaSkins}>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Paddle Skins</Text>
-              <FlatList></FlatList>
+              <FlatList
+                data={paddleSkinsStats}
+                renderItem={({ item }) => {
+                  if (item.unlocked == "true") {
+                    return (
+                      <View style={
+                        {
+                          flex: 1,
+                          backgroundColor: "#fff",
+                        }}>
+                          
+                      </View>
+                    );
+                  }
+                }}
+              />
             </View>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Ball Skins</Text>
