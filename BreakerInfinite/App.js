@@ -940,6 +940,7 @@ export default function App() {
     }
     else {
       SaveVibrations("true");
+      Vibration.vibrate(100);
     }
     setReRenderSettings(true);
   }
