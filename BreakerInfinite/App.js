@@ -84,7 +84,7 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     paddle: {
       width: paddle.size.x,
       height: paddle.size.y,
-      backgroundColor: "#fff",
+      // backgroundColor: "#fff",
       borderColor: "#d6d6d6",
       borderWidth: 5,
       borderRadius: 25,
@@ -102,7 +102,6 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
     Ball: {
       width: ball.size.x,
       height: ball.size.y,
-      backgroundColor: "#fff",
       borderColor: "#d6d6d6",
       borderWidth: 3,
       borderRadius: 25,
@@ -367,7 +366,11 @@ var userSettings = {
   sound: "",
   vibrations: ""
 }
-
+var skins = {
+  paddle: "#fff",
+  ball: "#fff",
+  brick: "#fff"
+}
 //#endregion
 export default function App() {
   //screen dimensions
@@ -508,10 +511,12 @@ export default function App() {
   let SaveBallSkin = async (name, unlocked, selected) => {
     let key = "@Ball" + name;
     let value = unlocked + "_" + selected;
+    await AsyncStorage.setItem(key, value);
   }
   let SaveBrickSkin = async (name, unlocked, selected) => {
     let key = "@Brick" + name;
     let value = unlocked + "_" + selected;
+    await AsyncStorage.setItem(key, value);
   }
   let SaveHighScore = async (value) => {
     await AsyncStorage.setItem("@UserScore", value);
@@ -535,7 +540,7 @@ export default function App() {
 
   let GetPaddleSkin = async (skin) => {
     let key = "@Paddle" + skin;
-    let value = await AsyncStorage.getItem(key).catch((err) => { console.log("error getting music: " + err) })
+    let value = await AsyncStorage.getItem(key).catch((err) => { console.log("error getting paddle: " + err) })
     if (value == null) {
       //if null return initial value
       let i = 0;
@@ -544,25 +549,57 @@ export default function App() {
           break;
         }
         i++;
-      } 
+      }
       value = paddleSkinsStats[i].unlocked + "_" + paddleSkinsStats[i].selected;
-      await SavePaddleSkin(skin,paddleSkinsStats[i].unlocked, paddleSkinsStats[i].selected);
+      await SavePaddleSkin(skin, paddleSkinsStats[i].unlocked, paddleSkinsStats[i].selected);
 
     }
     else {
-      // console.log("got music:" + value);
+      // console.log("got paddle:" + value);
     }
     return value;
   }
   let GetBallSkin = async (skin) => {
     let key = "@Ball" + skin;
-
+    let value = await AsyncStorage.getItem(key).catch((err) => { console.log("error getting ball: " + err) })
+    if (value == null) {
+      //if null return initial value
+      let i = 0;
+      while (i < ballSkinsStats.length) {
+        if (ballSkinsStats[i].name == skin) {
+          break;
+        }
+        i++;
+      }
+      value = ballSkinsStats[i].unlocked + "_" + ballSkinsStats[i].selected;
+      await SaveBallSkin(skin, ballSkinsStats[i].unlocked, ballSkinsStats[i].selected);
+    }
+    else {
+      // console.log("got ball:" + value);
+    }
+    return value;
   }
   let GetBrickSkin = async (skin) => {
     let key = "@Brick" + skin;
-
+    let value = await AsyncStorage.getItem(key).catch((err) => { console.log("error getting brick: " + err) })
+    if (value == null) {
+      //if null return initial value
+      let i = 0;
+      while (i < brickSkinsStats.length) {
+        if (brickSkinsStats[i].name == skin) {
+          break;
+        }
+        i++;
+      }
+      value = brickSkinsStats[i].unlocked + "_" + brickSkinsStats[i].selected;
+      await SaveBrickSkin(skin, brickSkinsStats[i].unlocked, brickSkinsStats[i].selected);
+    }
+    else {
+      // console.log("got brick:" + value);
+    }
+    return value;
   }
-  
+
   let GetHighScore = async () => {
     let value = await AsyncStorage.getItem("@UserScore").catch((err) => { console.log("error getting score: " + err) })
     if (value == null) {
@@ -611,7 +648,7 @@ export default function App() {
     }
     return value;
   }
-  getAllKeys = async () => {
+  let GetAllKeys = async () => {
     let keys = []
     try {
       keys = await AsyncStorage.getAllKeys()
@@ -623,11 +660,13 @@ export default function App() {
   }
   //init values
   let initUserSkins = async () => {
-    await updatePaddleSkinStats();
-    // await getAllKeys();
+    await UpdatePaddleSkinStats();
+    await UpdateBallSkinStats();
+    await UpdateBrickSkinStats();
+    await GetAllKeys();
   }
 
-  let updatePaddleSkinStats = async () => {
+  let UpdatePaddleSkinStats = async () => {
     let skinStats = [];
     for (let i = 0; i < paddleSkinsStats.length; i++) {
       let value = (await GetPaddleSkin(paddleSkinsStats[i].name)).split("_");
@@ -636,16 +675,116 @@ export default function App() {
         color: paddleSkinsStats[i].color,
         unlocked: value[0],
         selected: value[1]
-      } 
+      }
       skinStats.push(obj);
+      if (value[1] == "true") {
+        skins.paddle = paddleSkinsStats[i].color;
+        await setPaddleSkin(skins.paddle);
+      }
     }
     await setPaddleSkinsStats(skinStats);
     for (let i = 0; i < paddleSkinsStats.length; i++) {
-      if(paddleSkinsStats[i].selected != skinStats[i].selected || paddleSkinsStats[i].unlocked != skinStats[i].unlocked ){
-          console.log("paddle skins not updated");
+      if (paddleSkinsStats[i].selected != skinStats[i].selected || paddleSkinsStats[i].unlocked != skinStats[i].unlocked) {
+        paddleSkinsStats[i].selected = skinStats[i].selected;
+        paddleSkinsStats[i].unlocked = skinStats[i].unlocked;
       }
     }
+  }
 
+  let UpdateBallSkinStats = async () => {
+    let skinStats = [];
+    for (let i = 0; i < ballSkinsStats.length; i++) {
+      let value = (await GetBallSkin(ballSkinsStats[i].name)).split("_");
+      var obj = {
+        name: ballSkinsStats[i].name,
+        color: ballSkinsStats[i].color,
+        unlocked: value[0],
+        selected: value[1]
+      }
+      skinStats.push(obj);
+      if (value[1] == "true") {
+        skins.ball = ballSkinsStats[i].color;
+        await setBallSkin(skins.ball);
+      }
+    }
+    await setBallSkinsStats(skinStats);
+    for (let i = 0; i < ballSkinsStats.length; i++) {
+      if (ballSkinsStats[i].selected != skinStats[i].selected || ballSkinsStats[i].unlocked != skinStats[i].unlocked) {
+        ballSkinsStats[i].selected = skinStats[i].selected;
+        ballSkinsStats[i].unlocked = skinStats[i].unlocked;
+      }
+    }
+  }
+  let UpdateBrickSkinStats = async () => {
+    let skinStats = [];
+    for (let i = 0; i < brickSkinsStats.length; i++) {
+      let value = (await GetBrickSkin(brickSkinsStats[i].name)).split("_");
+      var obj = {
+        name: brickSkinsStats[i].name,
+        color: brickSkinsStats[i].color,
+        unlocked: value[0],
+        selected: value[1]
+      }
+      skinStats.push(obj);
+      if (value[1] == "true") {
+        skins.brick = brickSkinsStats[i].color;
+        await setBrickSkin(skins.brick);
+      }
+    }
+    await setBrickSkinsStats(skinStats);
+    for (let i = 0; i < brickSkinsStats.length; i++) {
+      if (brickSkinsStats[i].selected != skinStats[i].selected || brickSkinsStats[i].unlocked != skinStats[i].unlocked) {
+        brickSkinsStats[i].selected = skinStats[i].selected;
+        brickSkinsStats[i].unlocked = skinStats[i].unlocked;
+      }
+    }
+  }
+
+  let SelectPaddleSkin = async (skin) => {
+    for (let i = 0; i < paddleSkinsStats.length; i++) {
+      if (paddleSkinsStats[i].selected == "true") {
+        await SavePaddleSkin(paddleSkinsStats[i].name, "true", "false");
+        break;
+      }
+    }
+    await SavePaddleSkin(skin, "true", "true");
+    await UpdatePaddleSkinStats();
+  }
+
+  let SelectBallSkin = async (skin) => {
+    for (let i = 0; i < ballSkinsStats.length; i++) {
+      if (ballSkinsStats[i].selected == "true") {
+        await SaveBallSkin(ballSkinsStats[i].name, "true", "false");
+        break;
+      }
+    }
+    await SaveBallSkin(skin, "true", "true");
+    await UpdateBallSkinStats();
+  }
+
+  let SelectBrickSkin = async (skin) => {
+    for (let i = 0; i < brickSkinsStats.length; i++) {
+      if (brickSkinsStats[i].selected == "true") {
+        await SaveBrickSkin(brickSkinsStats[i].name, "true", "false");
+        break;
+      }
+    }
+    await SaveBrickSkin(skin, "true", "true");
+    await UpdateBrickSkinStats();
+  }
+
+  let unlockPaddleSkin = async (skin) => {
+    await SavePaddleSkin(skin, "true", "false");
+    await UpdatePaddleSkinStats();
+  }
+
+  let UnlockBallSkin = async (skin) => {
+    await SaveBallSkin(skin, "true", "false");
+    await UpdateBallSkinStats();
+  }
+  let UnlockBrickSkin = async (skin) => {
+    await SaveBrickSkin(skin, "true", "false");
+    await UpdateBrickSkinStats();
   }
   let initUserSettings = async () => {
     let hScore = await GetHighScore();
@@ -888,7 +1027,7 @@ export default function App() {
                     width: bricks[i][j].size.x,
                     height: bricks[i][j].size.y,
                     borderRadius: 10,
-                    backgroundColor: "#fff",
+                    backgroundColor: skins.brick,
                     borderColor: "#d6d6d6",
                     borderWidth: 5,
                     borderRadius: 10,
@@ -976,6 +1115,15 @@ export default function App() {
     if (reRender) {
       if (musicOn == "" || soundOn == "" || vibrationsOn == "") {
         initUserSettings();
+      }
+      if (ballSkin == "") {
+        UpdateBallSkinStats();
+      }
+      if (paddleSkin == "") {
+        UpdatePaddleSkinStats();
+      }
+      if (brickSkin == "") {
+        UpdateBrickSkinStats();
       }
       setReRenderMainMenu(false);
     }
@@ -1112,7 +1260,9 @@ export default function App() {
                       return (
                         <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                           <Text style={styles.SkinsItemText}>{item.name}</Text>
-                          <TouchableOpacity style={styles.SelectSkin}>
+                          <TouchableOpacity
+                            onPress={() => { onSelectSkinPaddle(item.name) }}
+                            style={styles.SelectSkin}>
                             <Text style={styles.LargeText}>Select</Text>
                           </TouchableOpacity>
                         </View>
@@ -1124,8 +1274,11 @@ export default function App() {
                     return (
                       <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                         <Text style={styles.SkinsItemText}>{item.name}</Text>
-                        <TouchableOpacity style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
-                          <Text style={styles.LargeText}>Unlock</Text>
+                        <TouchableOpacity
+                          onPress={() => { onUnlockSkinPaddle(item.name) }}
+                          style={[styles.SelectSkin,
+                          { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
+                          <Text style={styles.LargeText}>$Unlock</Text>
                         </TouchableOpacity>
                         <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
                       </View>
@@ -1137,12 +1290,101 @@ export default function App() {
             </View>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Ball Skins</Text>
-              <FlatList></FlatList>
+              <FlatList
+                horizontal
+                data={ballSkinsStats}
+                renderItem={({ item }) => {
+                  if (item.unlocked == "true") {
+                    if (item.selected == "true") {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <View style={[styles.SelectSkin, { backgroundColor: "#ffd700" }]}>
+                            <Text style={styles.LargeText}>Selected</Text>
+                          </View>
+                        </View>
+                      );
+
+                    }
+                    else {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <TouchableOpacity 
+                          onPress={()=>{onSelectSkinBall(item.name)}}
+                          style={styles.SelectSkin}>
+                            <Text style={styles.LargeText}>Select</Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+
+                    }
+                  }
+                  else {
+                    return (
+                      <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                        <Text style={styles.SkinsItemText}>{item.name}</Text>
+                        <TouchableOpacity 
+                        onPress={()=>{onUnlockSkinBall(item.name)}}
+                        style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
+                          <Text style={styles.LargeText}>$Unlock</Text>
+                        </TouchableOpacity>
+                        <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
+                      </View>
+
+                    );
+                  }
+                }}
+              />
             </View>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Brick Skins</Text>
-              <FlatList>
-              </FlatList>
+              <FlatList
+                horizontal
+                data={brickSkinsStats}
+                renderItem={({ item }) => {
+                  if (item.unlocked == "true") {
+                    if (item.selected == "true") {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <View style={[styles.SelectSkin, { backgroundColor: "#ffd700" }]}>
+                            <Text style={styles.LargeText}>Selected</Text>
+                          </View>
+                        </View>
+                      );
+
+                    }
+                    else {
+                      return (
+                        <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                          <Text style={styles.SkinsItemText}>{item.name}</Text>
+                          <TouchableOpacity 
+                          onPress={()=>{onSelectSkinBrick(item.name)}}
+                          style={styles.SelectSkin}>
+                            <Text style={styles.LargeText}>Select</Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+
+                    }
+                  }
+                  else {
+                    return (
+                      <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
+                        <Text style={styles.SkinsItemText}>{item.name}</Text>
+                        <TouchableOpacity 
+                        onPress={()=>{onUnlockSkinBrick(item.name)}}
+                        style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
+                          <Text style={styles.LargeText}>$Unlock</Text>
+                        </TouchableOpacity>
+                        <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
+                      </View>
+
+                    );
+                  }
+                }}
+              />
             </View>
           </View>
           <TouchableOpacity
@@ -1231,12 +1473,34 @@ export default function App() {
     setReRenderSettings(true);
   }
 
-  let onSelectSkin = async (name,unlocked) => {
-  
+  let onSelectSkinPaddle = async (name) => {
+    await SelectPaddleSkin(name);
+    setReRenderSkins(true);
   }
-  let onUnlockSkin = async (name,selected) => {
+  let onUnlockSkinPaddle = async (name) => {
+    await unlockPaddleSkin(name);
+    setReRenderSkins(true);
 
   }
+  let onSelectSkinBall = async (name) => {
+    await SelectBallSkin(name);
+    setReRenderSkins(true);
+  }
+  let onUnlockSkinBall = async (name) => {
+    await UnlockBallSkin(name);
+    setReRenderSkins(true);
+
+  }
+  let onSelectSkinBrick = async (name) => {
+    await SelectBrickSkin(name);
+    setReRenderSkins(true);
+  }
+  let onUnlockSkinBrick = async (name) => {
+    await UnlockBrickSkin(name);
+    setReRenderSkins(true);
+
+  }
+
   //#endregion
   return (
     <SafeAreaView>
@@ -1247,11 +1511,11 @@ export default function App() {
         {/*Draw Score over bricks so they don't cover it*/}
         {displayScore(reRenderScore)}
         {/*Ball Should be displayed over bricks and score */}
-        <Animated.View style={[styles.Ball, { top: ballAnimY, left: ballAnimX }]}></Animated.View>
+        <Animated.View style={[styles.Ball, { backgroundColor: skins.ball, top: ballAnimY, left: ballAnimX }]}></Animated.View>
         {/* Paddle is drawn above every other game object*/}
         <Animated.View style={styles.PaddleInputArea}{...panResponder.panHandlers}>
         </Animated.View>
-        <View style={styles.paddle}>
+        <View style={[styles.paddle, { backgroundColor: skins.paddle }]}>
         </View>
         {/*Render Pause Button*/}
         {displayPauseResume(reRenderPause)}
