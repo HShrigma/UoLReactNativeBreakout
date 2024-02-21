@@ -284,6 +284,28 @@ function CreateStyles(width, height, paddle, pan, ball, brick) {
       letterSpacing: 1.5,
       color: "#fff",
     },
+    SubMenuAreaSkins: {
+      flex: 10,
+      alignItems: "center",
+    },
+    SkinsContainer: {
+      flex: 1,
+      margin: "5%",
+      width: "90%",
+      borderColor: "#d6d6d6",
+      borderWidth: 5,
+      borderRadius: 20,
+    },
+    SkinsContainerLabel: {
+      top: "-20%",
+      textAlign: "center",
+      fontSize: Math.round(width / 25),
+      alignSelf: 'center',
+      textAlignVertical: 'center',
+      fontWeight: '500',
+      letterSpacing: 1.5,
+      color: "#fff",
+    },
   });
 }
 //#endregion
@@ -339,7 +361,7 @@ export default function App() {
   //#endregion
   //#region Async Storage
   let SaveHighScore = async (value) => {
-    await AsyncStorage.setItem("@UserScore",value);
+    await AsyncStorage.setItem("@UserScore", value);
     setHighScore(value);
   }
   let SaveMusic = async (value) => {
@@ -417,17 +439,17 @@ export default function App() {
   }
   //init values
   let initUserSettings = async () => {
-      let hScore = await GetHighScore();
-      setHighScore(hScore);
-      let music = await GetMusic();
-      setMusicOn(music);
-      let sound = await GetSound();
-      setSoundOn(sound);
-      let vibs = await GetVibration();
-      setVibrationsOn(vibs);
-      userSettings.music = music;
-      userSettings.sound = sound;
-      userSettings.vibrations = vibs;
+    let hScore = await GetHighScore();
+    setHighScore(hScore);
+    let music = await GetMusic();
+    setMusicOn(music);
+    let sound = await GetSound();
+    setSoundOn(sound);
+    let vibs = await GetVibration();
+    setVibrationsOn(vibs);
+    userSettings.music = music;
+    userSettings.sound = sound;
+    userSettings.vibrations = vibs;
   }
 
 
@@ -491,7 +513,6 @@ export default function App() {
   }
 
   //#endregion
-  //#endregion
   //#region Physics & Game Functions
   async function OnBricksHit(i, j) {
     brickMatrix.bricks[i][j].renders = false;
@@ -499,7 +520,7 @@ export default function App() {
     ball.UpdateBrickColliders(brickMatrix.bricks);
     score += 5;
     setReRenderScore(true);
-    if(userSettings.vibrations != "true" && userSettings.vibrations != "false"){
+    if (userSettings.vibrations != "true" && userSettings.vibrations != "false") {
       await initUserSettings();
     }
     if (userSettings.vibrations == "true") {
@@ -707,7 +728,7 @@ export default function App() {
   let displayGameOver = (reRender) => {
     if (reRender) {
       setReRenderGameOver(false);
-      if(score > Number(highScore)){
+      if (score > Number(highScore)) {
         setHighScore(score.toString());
         SaveHighScore(score.toString());
       }
@@ -857,7 +878,18 @@ export default function App() {
               Skins
             </Text>
           </View>
-          <View style={styles.SubMenuArea}>
+          <View style={styles.SubMenuAreaSkins}>
+            <View style={styles.SkinsContainer}>
+              <Text style={styles.SkinsContainerLabel}>Paddle Skins</Text>
+            </View>
+            <View style={styles.SkinsContainer}>
+              <Text style={styles.SkinsContainerLabel}>Ball Skins</Text>
+
+            </View>
+            <View style={styles.SkinsContainer}>
+              <Text style={styles.SkinsContainerLabel}>Brick Skins</Text>
+
+            </View>
           </View>
           <TouchableOpacity
             style={styles.BackButton}
