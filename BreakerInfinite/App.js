@@ -498,23 +498,20 @@ export default function App() {
 
   //#endregion
   //#region Async Storage
-  let SavePaddleSkin = async (value) => {
+  let SavePaddleSkin = async (name, unlocked, selected) => {
+    let key = "@Paddle" + name;
+    let value = unlocked + "_" + selected;
+
+    await AsyncStorage.setItem(key, value);
 
   }
-  let SavePaddleSkinsStatuses = async (value) => {
-
+  let SaveBallSkin = async (name, unlocked, selected) => {
+    let key = "@Ball" + name;
+    let value = unlocked + "_" + selected;
   }
-  let SaveBallSkin = async (value) => {
-
-  }
-  let SaveBallSkinsStatuses = async (value) => {
-
-  }
-  let SaveBrickSkin = async (value) => {
-
-  }
-  let SaveBrickSkinStatuses = async (value) => {
-
+  let SaveBrickSkin = async (name, unlocked, selected) => {
+    let key = "@Brick" + name;
+    let value = unlocked + "_" + selected;
   }
   let SaveHighScore = async (value) => {
     await AsyncStorage.setItem("@UserScore", value);
@@ -536,25 +533,36 @@ export default function App() {
     userSettings.vibrations = value;
   }
 
-  let GetPaddleSkin = async (value) => {
+  let GetPaddleSkin = async (skin) => {
+    let key = "@Paddle" + skin;
+    let value = await AsyncStorage.getItem(key).catch((err) => { console.log("error getting music: " + err) })
+    if (value == null) {
+      //if null return initial value
+      let i = 0;
+      while (i < paddleSkinsStats.length) {
+        if (paddleSkinsStats[i].name == skin) {
+          break;
+        }
+        i++;
+      } 
+      value = paddleSkinsStats[i].unlocked + "_" + paddleSkinsStats[i].selected;
+      await SavePaddleSkin(skin,paddleSkinsStats[i].unlocked, paddleSkinsStats[i].selected);
+
+    }
+    else {
+      // console.log("got music:" + value);
+    }
+    return value;
+  }
+  let GetBallSkin = async (skin) => {
+    let key = "@Ball" + skin;
 
   }
-  let GetPaddleSkinsStatuses = async (skinName) => {
+  let GetBrickSkin = async (skin) => {
+    let key = "@Brick" + skin;
 
   }
-  let GetBallSkin = async (skinName) => {
-
-  }
-  let GetBallSkinStatuses = async (skinName) => {
-
-  }
-  let GetBrickSkin = async (value) => {
-
-  }
-  let GetBrickSkinStatuses = async (value) => {
-
-  }
-
+  
   let GetHighScore = async () => {
     let value = await AsyncStorage.getItem("@UserScore").catch((err) => { console.log("error getting score: " + err) })
     if (value == null) {
@@ -614,6 +622,31 @@ export default function App() {
     console.log(keys);
   }
   //init values
+  let initUserSkins = async () => {
+    await updatePaddleSkinStats();
+    // await getAllKeys();
+  }
+
+  let updatePaddleSkinStats = async () => {
+    let skinStats = [];
+    for (let i = 0; i < paddleSkinsStats.length; i++) {
+      let value = (await GetPaddleSkin(paddleSkinsStats[i].name)).split("_");
+      var obj = {
+        name: paddleSkinsStats[i].name,
+        color: paddleSkinsStats[i].color,
+        unlocked: value[0],
+        selected: value[1]
+      } 
+      skinStats.push(obj);
+    }
+    await setPaddleSkinsStats(skinStats);
+    for (let i = 0; i < paddleSkinsStats.length; i++) {
+      if(paddleSkinsStats[i].selected != skinStats[i].selected || paddleSkinsStats[i].unlocked != skinStats[i].unlocked ){
+          console.log("paddle skins not updated");
+      }
+    }
+
+  }
   let initUserSettings = async () => {
     let hScore = await GetHighScore();
     setHighScore(hScore);
@@ -626,11 +659,6 @@ export default function App() {
     userSettings.music = music;
     userSettings.sound = sound;
     userSettings.vibrations = vibs;
-  }
-  let initUserSkins = async () => {
-    ballSkinsStats.forEach(skin => {
-
-    })
   }
 
   //#endregion
@@ -1073,7 +1101,7 @@ export default function App() {
                       return (
                         <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                           <Text style={styles.SkinsItemText}>{item.name}</Text>
-                          <View style={[styles.SelectSkin,{backgroundColor: "#ffd700"}]}>
+                          <View style={[styles.SelectSkin, { backgroundColor: "#ffd700" }]}>
                             <Text style={styles.LargeText}>Selected</Text>
                           </View>
                         </View>
@@ -1096,7 +1124,7 @@ export default function App() {
                     return (
                       <View style={[styles.SkinsItem, { backgroundColor: item.color }]}>
                         <Text style={styles.SkinsItemText}>{item.name}</Text>
-                        <TouchableOpacity style={[styles.SelectSkin,{backgroundColor:"#D5D8DC",borderColor:"#fff"}]}>
+                        <TouchableOpacity style={[styles.SelectSkin, { backgroundColor: "#D5D8DC", borderColor: "#fff" }]}>
                           <Text style={styles.LargeText}>Unlock</Text>
                         </TouchableOpacity>
                         <Image style={styles.SkinsItemLockIMG} source={require(imgPathLock)} />
@@ -1203,7 +1231,12 @@ export default function App() {
     setReRenderSettings(true);
   }
 
+  let onSelectSkin = async (name,unlocked) => {
+  
+  }
+  let onUnlockSkin = async (name,selected) => {
 
+  }
   //#endregion
   return (
     <SafeAreaView>
