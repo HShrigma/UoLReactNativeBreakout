@@ -13,6 +13,7 @@ import {
   useWindowDimensions,
   TouchableOpacity, Image,
   Vibration,
+  FlatList
 } from 'react-native';
 
 import { useState, useRef } from 'react';
@@ -881,14 +882,16 @@ export default function App() {
           <View style={styles.SubMenuAreaSkins}>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Paddle Skins</Text>
+              <FlatList></FlatList>
             </View>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Ball Skins</Text>
-
+              <FlatList></FlatList>
             </View>
             <View style={styles.SkinsContainer}>
               <Text style={styles.SkinsContainerLabel}>Brick Skins</Text>
-
+              <FlatList>
+              </FlatList>
             </View>
           </View>
           <TouchableOpacity

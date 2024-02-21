@@ -1,0 +1,24 @@
+{
+    "Skins": [
+        {
+            "name": "Default",
+            "color": "#fff"
+        },
+        {
+            "name": "Crimson",
+            "color": "#dc143c"
+        },
+        {
+            "name": "Slate Blue",
+            "color": "#6a5acd"
+        },
+        {
+            "name": "Olive",
+            "color": "#808000"
+        },
+        {
+            "name": "Gold",
+            "color": "#ffd700"
+        }
+    ]
+}
