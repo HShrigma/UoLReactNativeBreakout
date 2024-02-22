@@ -26,7 +26,6 @@ import { Paddle } from './Paddle';
 import { Ball } from './Ball';
 import { Brick } from './Brick';
 import { BrickMatrix } from './BrickMatrix';
-import SkinList from "./SkinsList.json";
 const title = "Breaker: Infinite";
 
 const FPS = 60;
